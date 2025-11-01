@@ -212,6 +212,63 @@
             border-bottom: none;
         }
 
+        .video-item.expanded {
+            background: #2a2a2a;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .video-item-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .video-details {
+            display: none;
+            width: 100%;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        .video-item.expanded .video-details {
+            display: block;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .detail-label {
+            color: #888;
+        }
+
+        .detail-value {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .watch-btn {
+            background: #065fd4;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-top: 8px;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .watch-btn:hover {
+            background: #0c7ae8;
+        }
+
         .rank-badge {
             background: #065fd4;
             color: white;
@@ -256,6 +313,44 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .niche-card:hover {
+            border-color: #065fd4;
+            box-shadow: 0 4px 12px rgba(6, 95, 212, 0.2);
+        }
+
+        .niche-card.expanded {
+            border-color: #065fd4;
+        }
+
+        .niche-content {
+            display: none;
+        }
+
+        .niche-card.expanded .niche-content {
+            display: block;
+        }
+
+        .expand-icon {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .niche-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .beginner-badge {
+            background: #4caf50;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
         }
 
         .niche-header {
@@ -662,11 +757,24 @@
         function showView(view) {
             currentView = view;
             
-            // Update nav
+            // Update nav - remove active from all, then add to clicked item
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
-            event?.target?.closest('.nav-item')?.classList.add('active');
+            
+            // Find and activate the correct nav item
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                const itemText = item.textContent.trim().toLowerCase();
+                if ((view === 'dashboard' && itemText.includes('dashboard')) ||
+                    (view === 'trending' && itemText.includes('trending')) ||
+                    (view === 'analytics' && itemText.includes('analytics')) ||
+                    (view === 'niches' && itemText.includes('niche')) ||
+                    (view === 'keywords' && itemText.includes('keywords')) ||
+                    (view === 'history' && itemText.includes('history'))) {
+                    item.classList.add('active');
+                }
+            });
             
             // Destroy existing charts
             Object.values(charts).forEach(chart => chart.destroy());
@@ -765,7 +873,7 @@
 
         function displayTrending() {
             if (allLogs.length === 0) {
-                showEmptyState('No data yet. Click REFRESH to fetch trending videos.');
+                showEmptyState('No data yet. Data will populate automatically.');
                 return;
             }
 
@@ -773,17 +881,39 @@
 
             const html = `
                 <div class="video-list">
-                    <div class="video-header">Top 10 Trending Videos</div>
+                    <div class="video-header">Top 10 Trending Videos - Click to expand</div>
                     ${latestLog.trends.map(video => `
-                        <div class="video-item" onclick="window.open('${video.url}', '_blank')">
-                            <div class="rank-badge">${video.rank}</div>
-                            <div class="video-info">
-                                <div class="video-title">${video.title}</div>
-                                <div class="video-meta">
-                                    <span>${video.channel}</span>
-                                    <span>👁 ${formatNumber(video.views)}</span>
-                                    <span>👍 ${formatNumber(video.likes)}</span>
+                        <div class="video-item" id="video-${video.rank}" onclick="toggleVideoExpand(${video.rank})">
+                            <div class="video-item-header">
+                                <div class="rank-badge">${video.rank}</div>
+                                <div class="video-info">
+                                    <div class="video-title">${video.title}</div>
+                                    <div class="video-meta">
+                                        <span>${video.channel}</span>
+                                        <span>👁 ${formatNumber(video.views)}</span>
+                                        <span>👍 ${formatNumber(video.likes)}</span>
+                                    </div>
                                 </div>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="video-details">
+                                <div class="detail-row">
+                                    <span class="detail-label">Channel:</span>
+                                    <span class="detail-value">${video.channel}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Total Views:</span>
+                                    <span class="detail-value">${video.views.toLocaleString()}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Total Likes:</span>
+                                    <span class="detail-value">${video.likes.toLocaleString()}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Engagement Rate:</span>
+                                    <span class="detail-value">${((video.likes / video.views) * 100).toFixed(2)}%</span>
+                                </div>
+                                <a href="${video.url}" target="_blank" class="watch-btn">▶ Watch on YouTube</a>
                             </div>
                         </div>
                     `).join('')}
@@ -791,6 +921,11 @@
             `;
             
             document.getElementById('content').innerHTML = html;
+        }
+
+        function toggleVideoExpand(rank) {
+            const videoEl = document.getElementById(`video-${rank}`);
+            videoEl.classList.toggle('expanded');
         }
 
         function displayAnalytics() {
@@ -862,34 +997,44 @@
                 return;
             }
 
-            const niches = analyzeNiches();
+            const niches = analyzeBeginnerNiches();
             
             const html = `
                 <div class="stats-grid" style="margin-bottom: 24px;">
                     <div class="stat-card">
                         <div class="stat-value">${niches.length}</div>
-                        <div class="stat-label">Niches Found</div>
+                        <div class="stat-label">Beginner Niches</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">${niches.filter(n => n.score >= 80).length}</div>
-                        <div class="stat-label">High Potential</div>
+                        <div class="stat-value">${niches.filter(n => n.isBeginnerFriendly).length}</div>
+                        <div class="stat-label">Highly Recommended</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">${formatNumber(niches.reduce((sum, n) => sum + n.avgViews, 0) / niches.length)}</div>
-                        <div class="stat-label">Avg Niche Views</div>
+                        <div class="stat-value">${niches.filter(n => n.competition === 'Low').length}</div>
+                        <div class="stat-label">Low Competition</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">${niches[0]?.competition || 'N/A'}</div>
-                        <div class="stat-label">Best Competition Level</div>
+                        <div class="stat-value">${niches.filter(n => n.growth.includes('Rising')).length}</div>
+                        <div class="stat-label">Rising Trends</div>
                     </div>
                 </div>
 
-                ${niches.map(niche => `
-                    <div class="niche-card">
+                <div style="background: #065fd4; padding: 16px; border-radius: 8px; margin-bottom: 20px; color: white;">
+                    <strong>💡 Beginner Guide:</strong> These niches are selected based on low competition, good potential views, and ease of content creation. Click each niche to see detailed strategies!
+                </div>
+
+                ${niches.map((niche, idx) => `
+                    <div class="niche-card" id="niche-${idx}" onclick="toggleNicheExpand(${idx})">
                         <div class="niche-header">
-                            <div class="niche-title">${niche.name}</div>
-                            <div class="niche-score ${niche.score >= 80 ? 'high' : niche.score >= 60 ? 'medium' : 'low'}">
-                                ${niche.score}/100
+                            <div style="display: flex; align-items: center;">
+                                <div class="niche-title">${niche.name}</div>
+                                ${niche.isBeginnerFriendly ? '<span class="beginner-badge">BEST FOR BEGINNERS</span>' : ''}
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="niche-score ${niche.score >= 80 ? 'high' : niche.score >= 60 ? 'medium' : 'low'}">
+                                    ${niche.score}/100
+                                </div>
+                                <span class="expand-icon">▼</span>
                             </div>
                         </div>
 
@@ -897,39 +1042,269 @@
                             ${niche.description}
                         </div>
 
-                        <div class="niche-stats">
-                            <div class="niche-stat-item">
-                                <div class="niche-stat-value">${formatNumber(niche.avgViews)}</div>
-                                <div class="niche-stat-label">Avg Views</div>
+                        <div class="niche-content">
+                            <div class="niche-stats">
+                                <div class="niche-stat-item">
+                                    <div class="niche-stat-value">${formatNumber(niche.avgViews)}</div>
+                                    <div class="niche-stat-label">Avg Views</div>
+                                </div>
+                                <div class="niche-stat-item">
+                                    <div class="niche-stat-value">${niche.frequency}</div>
+                                    <div class="niche-stat-label">Trend Frequency</div>
+                                </div>
+                                <div class="niche-stat-item">
+                                    <div class="niche-stat-value">${niche.competition}</div>
+                                    <div class="niche-stat-label">Competition</div>
+                                </div>
+                                <div class="niche-stat-item">
+                                    <div class="niche-stat-value">${niche.growth}</div>
+                                    <div class="niche-stat-label">Growth Trend</div>
+                                </div>
                             </div>
-                            <div class="niche-stat-item">
-                                <div class="niche-stat-value">${niche.frequency}</div>
-                                <div class="niche-stat-label">Trend Frequency</div>
-                            </div>
-                            <div class="niche-stat-item">
-                                <div class="niche-stat-value">${niche.competition}</div>
-                                <div class="niche-stat-label">Competition</div>
-                            </div>
-                            <div class="niche-stat-item">
-                                <div class="niche-stat-value">${niche.growth}</div>
-                                <div class="niche-stat-label">Growth Trend</div>
-                            </div>
-                        </div>
 
-                        <div class="niche-keywords">
-                            <div class="niche-keywords-title">Related Keywords:</div>
-                            ${niche.keywords.map(kw => `<span class="keyword-tag">${kw}</span>`).join('')}
-                        </div>
+                            <div class="niche-keywords">
+                                <div class="niche-keywords-title">Related Keywords:</div>
+                                ${niche.keywords.map(kw => `<span class="keyword-tag">${kw}</span>`).join('')}
+                            </div>
 
-                        <div class="growth-tips">
-                            <div class="tips-title">💡 Growth Strategy for ${niche.name}:</div>
-                            ${niche.tips.map(tip => `<div class="tip-item">${tip}</div>`).join('')}
+                            ${niche.isBeginnerFriendly ? `
+                            <div style="background: #0a3d0a; padding: 16px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #4caf50;">
+                                <div style="color: #4caf50; font-weight: 600; margin-bottom: 8px;">✨ Why This is Great for Beginners:</div>
+                                <div style="color: #ccc; font-size: 13px;">
+                                    ${niche.beginnerReason}
+                                </div>
+                            </div>
+                            ` : ''}
+
+                            <div class="growth-tips">
+                                <div class="tips-title">💡 Growth Strategy for ${niche.name}:</div>
+                                ${niche.tips.map(tip => `<div class="tip-item">${tip}</div>`).join('')}
+                            </div>
+
+                            <div style="background: #0a0a0a; padding: 16px; border-radius: 6px; margin-top: 12px;">
+                                <div style="color: #065fd4; font-weight: 600; margin-bottom: 8px;">🎬 Content Ideas:</div>
+                                ${niche.contentIdeas.map(idea => `
+                                    <div style="color: #aaa; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #222;">
+                                        • ${idea}
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
                     </div>
                 `).join('')}
             `;
             
             document.getElementById('content').innerHTML = html;
+        }
+
+        function toggleNicheExpand(idx) {
+            const nicheEl = document.getElementById(`niche-${idx}`);
+            nicheEl.classList.toggle('expanded');
+        }
+
+        function analyzeBeginnerNiches() {
+            // Separate analysis specifically for beginner-friendly niches
+            const beginnerNicheCategories = {
+                'tutorial': {
+                    keywords: ['tutorial', 'howto', 'guide', 'learn', 'explained', 'tips', 'beginner'],
+                    description: 'Tutorial content is perfect for beginners - you can teach what you know without expensive equipment.',
+                    beginnerReason: 'Low barrier to entry, screen recording software is free, and there\'s always demand for learning content. You can start with topics you already know.',
+                    contentIdeas: [
+                        'Software tutorials (free tools like Canva, GIMP, DaVinci Resolve)',
+                        'Productivity tips and life hacks',
+                        'Study techniques and note-taking methods',
+                        'Language learning tips',
+                        'How to use popular apps and websites'
+                    ]
+                },
+                'commentary': {
+                    keywords: ['react', 'reaction', 'review', 'explained', 'breakdown', 'analysis', 'commentary'],
+                    description: 'Commentary and reaction content requires minimal equipment - just your voice and existing content to discuss.',
+                    beginnerReason: 'No special equipment needed, you can record on your phone. Commentary on trending topics gets immediate views.',
+                    contentIdeas: [
+                        'React to viral videos (within fair use)',
+                        'News commentary and analysis',
+                        'Product reviews (things you already own)',
+                        'Movie/show breakdowns and theories',
+                        'Social media trend analysis'
+                    ]
+                },
+                'lists': {
+                    keywords: ['best', 'worst', 'list', 'ranking', 'facts', 'things', 'countdown'],
+                    description: 'List-based content is easy to research and structure, perfect for starting out.',
+                    beginnerReason: 'Simple format that\'s easy to script. Can use free stock footage and images. Highly searchable titles.',
+                    contentIdeas: [
+                        'Top 10 free tools for X',
+                        'Best budget products under $50',
+                        'Interesting facts about [topic]',
+                        'Things you didn\'t know about [popular subject]',
+                        'Comparing popular products'
+                    ]
+                },
+                'podcast': {
+                    keywords: ['podcast', 'interview', 'talk', 'discussion', 'conversation', 'story'],
+                    description: 'Podcast-style content only needs a microphone and interesting conversations.',
+                    beginnerReason: 'Audio-focused so production is simpler. Can collaborate with others remotely. Natural speaking style is encouraged.',
+                    contentIdeas: [
+                        'Interview interesting people in your field',
+                        'Discuss current events with co-hosts',
+                        'Story-time and personal experiences',
+                        'Book/movie/game discussions',
+                        'Answer audience questions'
+                    ]
+                },
+                'gaming': {
+                    keywords: ['game', 'gaming', 'gameplay', 'playthrough', 'walkthrough', 'lets'],
+                    description: 'Gaming content is beginner-friendly if you focus on popular free games.',
+                    beginnerReason: 'Free games available, built-in audience, OBS Studio is free for recording, and viewers enjoy personality over production quality.',
+                    contentIdeas: [
+                        'Free-to-play game tutorials (Fortnite, Roblox, Valorant)',
+                        'Mobile game playthroughs',
+                        'Game tips and strategies',
+                        'Funny moments compilations',
+                        'Beginner guides for popular games'
+                    ]
+                },
+                'animation': {
+                    keywords: ['animation', 'animated', 'story', 'cartoon', 'storytime', 'animatic'],
+                    description: 'Simple animation and storytime content can be created with free tools.',
+                    beginnerReason: 'Free tools like Krita and Blender available. Simple style animations are popular. Can outsource animation later once profitable.',
+                    contentIdeas: [
+                        'Animated storytimes (personal experiences)',
+                        'Simple educational animations',
+                        'Animated jokes and comedy skits',
+                        'Stick figure animations (very popular)',
+                        'Whiteboard animation explanations'
+                    ]
+                },
+                'documenta ry': {
+                    keywords: ['documentary', 'history', 'mystery', 'investigation', 'deep', 'case', 'story'],
+                    description: 'Documentary-style content using research and stock footage is growing rapidly.',
+                    beginnerReason: 'Research-based content, use free stock footage and images, voiceover-focused so no need to show face.',
+                    contentIdeas: [
+                        'Historical events explained',
+                        'True crime cases (solved/old cases only)',
+                        'Unsolved mysteries',
+                        'Internet mysteries and deep dives',
+                        'Company/brand history documentaries'
+                    ]
+                },
+                'lifestyle': {
+                    keywords: ['vlog', 'daily', 'routine', 'life', 'day', 'morning', 'night'],
+                    description: 'Lifestyle vlogs are authentic and require minimal editing skills.',
+                    beginnerReason: 'Just film your daily life with a phone camera. Authenticity matters more than production value. Easy to stay consistent.',
+                    contentIdeas: [
+                        'Day in the life vlogs',
+                        'Morning/night routines',
+                        'What I eat in a day',
+                        'Productivity and time management',
+                        'Student life / work life vlogs'
+                    ]
+                }
+            };
+
+            const niches = [];
+
+            for (const [category, data] of Object.entries(beginnerNicheCategories)) {
+                // Search for matching content in trending
+                let totalViews = 0;
+                let videoCount = 0;
+                let frequency = 0;
+
+                allLogs.forEach(log => {
+                    log.trends.forEach(trend => {
+                        const titleLower = trend.title.toLowerCase();
+                        if (data.keywords.some(kw => titleLower.includes(kw))) {
+                            totalViews += trend.views;
+                            videoCount++;
+                            frequency++;
+                        }
+                    });
+                });
+
+                // Calculate scores
+                const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 2000000; // Default decent views
+                const competition = frequency > 12 ? 'Medium' : frequency > 6 ? 'Low' : 'Very Low';
+                
+                // Calculate growth
+                const recentFreq = allLogs.slice(-3).reduce((sum, log) => {
+                    return sum + log.trends.filter(t => 
+                        data.keywords.some(kw => t.title.toLowerCase().includes(kw))
+                    ).length;
+                }, 0);
+                const growth = recentFreq > frequency / 2 ? '📈 Rising' : recentFreq < frequency / 3 ? '📉 Stable' : '➡️ Stable';
+
+                // Beginner score calculation (prioritizes low competition and ease)
+                const competitionScore = competition === 'Very Low' ? 40 : competition === 'Low' ? 35 : 25;
+                const viewScore = Math.min((avgViews / 3000000) * 30, 30);
+                const easeScore = 30; // All these are beginner-friendly
+                const score = Math.round(competitionScore + viewScore + easeScore);
+
+                // Is it HIGHLY beginner-friendly?
+                const isBeginnerFriendly = competition === 'Very Low' || competition === 'Low';
+
+                // Extract actual trending keywords
+                const trendingKeywords = [];
+                allLogs.forEach(log => {
+                    log.trends.forEach(trend => {
+                        const titleLower = trend.title.toLowerCase();
+                        data.keywords.forEach(kw => {
+                            if (titleLower.includes(kw) && !trendingKeywords.includes(kw)) {
+                                trendingKeywords.push(kw);
+                            }
+                        });
+                    });
+                });
+
+                niches.push({
+                    name: category.charAt(0).toUpperCase() + category.slice(1).replace('documenta ry', 'Documentary'),
+                    description: data.description,
+                    beginnerReason: data.beginnerReason,
+                    contentIdeas: data.contentIdeas,
+                    avgViews: avgViews,
+                    frequency: Math.max(frequency, 1),
+                    competition: competition,
+                    growth: growth,
+                    score: score,
+                    keywords: trendingKeywords.length > 0 ? trendingKeywords.slice(0, 6) : data.keywords.slice(0, 6),
+                    isBeginnerFriendly: isBeginnerFriendly,
+                    tips: getBeginnerTips(category, competition, growth)
+                });
+            }
+
+            return niches.sort((a, b) => {
+                // Prioritize beginner-friendly, then score
+                if (a.isBeginnerFriendly && !b.isBeginnerFriendly) return -1;
+                if (!a.isBeginnerFriendly && b.isBeginnerFriendly) return 1;
+                return b.score - a.score;
+            });
+        }
+
+        function getBeginnerTips(category, competition, growth) {
+            const baseTips = [
+                'Start with what you know - your first videos will teach you more than any tutorial',
+                'Consistency beats perfection - post regularly even if videos aren\'t perfect',
+                'Study successful channels in your niche and note what works',
+                'Engage with every comment in your first 100 videos to build community'
+            ];
+
+            const categoryTips = {
+                'tutorial': 'Use free screen recording software like OBS. Keep tutorials under 10 minutes. Clear audio is more important than video quality.',
+                'commentary': 'Your unique perspective is the value. Don\'t worry about fancy editing. Phone mic is fine to start.',
+                'lists': 'Use Canva for thumbnails (free). Find Creative Commons images. Script your videos for better flow.',
+                'podcast': 'Zoom H1n or Blue Yeti are great starter mics ($60-100). Long-form content (30+ min) builds loyal audiences.',
+                'gaming': 'Focus on one game initially. Free games have bigger audiences. Edit out boring parts - pacing is key.',
+                'animation': 'Start with simple style - stick figures work! Focus on story over animation quality.',
+                'documentary': 'Pexels and Pixabay have free stock footage. Good narration is crucial. Research thoroughly.',
+                'lifestyle': 'Natural lighting is best. iPhone/Android cameras are great. Be yourself - people love authenticity.'
+            };
+
+            return [
+                categoryTips[category] || baseTips[0],
+                competition === 'Very Low' ? '✨ Perfect timing! Very low competition means your content can rank easily.' : competition === 'Low' ? 'Good opportunity with manageable competition.' : 'Focus on unique angles to stand out.',
+                growth.includes('Rising') ? '📈 Jump in now! This niche is growing - early creators gain advantage.' : 'Stable audience means consistent views if you create quality content.',
+                ...baseTips.slice(1, 3)
+            ];
         }
 
         function analyzeNiches() {
