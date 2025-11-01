@@ -540,15 +540,38 @@
         let allLogs = [];
         let currentView = 'dashboard';
         let charts = {};
+        let lastFetchTime = 0;
+        const FETCH_INTERVAL = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadStoredData();
-            fetchTrends();
+            checkAndFetchTrends();
             
-            // Auto-refresh every 6 hours (4 times per day = 4 API calls per day)
-            setInterval(fetchTrends, 6 * 60 * 60 * 1000);
+            // Set up interval to check every minute if it's time to fetch
+            setInterval(checkAndFetchTrends, 60 * 1000);
         });
+
+        function checkAndFetchTrends() {
+            const now = Date.now();
+            const storedLastFetch = localStorage.getItem('lastFetchTime');
+            
+            if (storedLastFetch) {
+                lastFetchTime = parseInt(storedLastFetch);
+            }
+            
+            // Only fetch if it's been more than 6 hours OR if we have no data
+            if (now - lastFetchTime >= FETCH_INTERVAL || allLogs.length === 0) {
+                fetchTrends();
+            } else {
+                // Just display existing data
+                showView(currentView);
+                const timeUntilNext = FETCH_INTERVAL - (now - lastFetchTime);
+                const hoursLeft = Math.floor(timeUntilNext / (60 * 60 * 1000));
+                const minutesLeft = Math.floor((timeUntilNext % (60 * 60 * 1000)) / (60 * 1000));
+                console.log(`Next update in ${hoursLeft}h ${minutesLeft}m`);
+            }
+        }
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
@@ -570,6 +593,11 @@
                 const trends = processTrends(data);
                 
                 storeTrends(trends);
+                
+                // Store the fetch time
+                lastFetchTime = Date.now();
+                localStorage.setItem('lastFetchTime', lastFetchTime.toString());
+                
                 updateLastUpdatedTime();
                 showView(currentView);
                 
@@ -907,16 +935,21 @@
         function analyzeNiches() {
             const keywords = extractAllKeywords();
             const nicheCategories = {
-                'gaming': ['game', 'gaming', 'gameplay', 'minecraft', 'fortnite', 'roblox', 'valorant', 'league'],
-                'tech': ['tech', 'iphone', 'android', 'review', 'unboxing', 'apple', 'samsung', 'gadget'],
-                'entertainment': ['movie', 'film', 'trailer', 'react', 'reaction', 'funny', 'comedy', 'meme'],
-                'music': ['music', 'song', 'audio', 'lyrics', 'official', 'remix', 'cover', 'album'],
-                'education': ['tutorial', 'learn', 'course', 'study', 'guide', 'explained', 'howto', 'tips'],
-                'lifestyle': ['vlog', 'daily', 'life', 'routine', 'morning', 'night', 'family', 'travel'],
-                'sports': ['sports', 'football', 'basketball', 'soccer', 'highlights', 'goals', 'nba', 'nfl'],
-                'food': ['food', 'recipe', 'cooking', 'eating', 'mukbang', 'restaurant', 'chef', 'kitchen'],
-                'news': ['news', 'breaking', 'live', 'update', 'today', 'latest', 'coverage', 'report'],
-                'beauty': ['makeup', 'beauty', 'skincare', 'fashion', 'style', 'hair', 'outfit', 'cosmetics']
+                'gaming': ['game', 'gaming', 'gameplay', 'minecraft', 'fortnite', 'roblox', 'valorant', 'league', 'gamer', 'stream', 'play'],
+                'tech': ['tech', 'iphone', 'android', 'review', 'unboxing', 'apple', 'samsung', 'gadget', 'phone', 'computer', 'setup'],
+                'entertainment': ['movie', 'film', 'trailer', 'react', 'reaction', 'funny', 'comedy', 'meme', 'prank', 'challenge', 'tiktok'],
+                'music': ['music', 'song', 'audio', 'lyrics', 'official', 'remix', 'cover', 'album', 'artist', 'band', 'concert'],
+                'education': ['tutorial', 'learn', 'course', 'study', 'guide', 'explained', 'howto', 'tips', 'lesson', 'teach', 'school'],
+                'lifestyle': ['vlog', 'daily', 'life', 'routine', 'morning', 'night', 'family', 'travel', 'adventure', 'lifestyle', 'home'],
+                'sports': ['sports', 'football', 'basketball', 'soccer', 'highlights', 'goals', 'nba', 'nfl', 'player', 'team', 'match'],
+                'food': ['food', 'recipe', 'cooking', 'eating', 'mukbang', 'restaurant', 'chef', 'kitchen', 'baking', 'meal', 'taste'],
+                'news': ['news', 'breaking', 'live', 'update', 'today', 'latest', 'coverage', 'report', 'politics', 'world', 'current'],
+                'beauty': ['makeup', 'beauty', 'skincare', 'fashion', 'style', 'hair', 'outfit', 'cosmetics', 'nails', 'dress', 'look'],
+                'fitness': ['workout', 'fitness', 'exercise', 'gym', 'training', 'muscle', 'weight', 'health', 'yoga', 'cardio'],
+                'finance': ['money', 'invest', 'stock', 'crypto', 'bitcoin', 'finance', 'business', 'trading', 'passive', 'income'],
+                'diy': ['craft', 'build', 'make', 'project', 'woodwork', 'repair', 'paint', 'design', 'create', 'homemade'],
+                'podcast': ['podcast', 'interview', 'talk', 'discussion', 'conversation', 'episode', 'show', 'series'],
+                'anime': ['anime', 'manga', 'naruto', 'dragon', 'episode', 'season', 'character', 'cosplay']
             };
 
             const niches = [];
@@ -942,6 +975,9 @@
                         });
                     });
                     const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 0;
+
+                    // Skip niches with no videos
+                    if (videoCount === 0) continue;
 
                     // Calculate competition level
                     const competition = frequency > 15 ? 'High' : frequency > 8 ? 'Medium' : 'Low';
@@ -988,7 +1024,12 @@
                 'sports': 'Sports highlights and analysis attract passionate fans seeking quick updates and memorable moments.',
                 'food': 'Food content from recipes to mukbangs has universal appeal and strong visual engagement.',
                 'news': 'News and current events content gets immediate traffic but requires constant updating.',
-                'beauty': 'Beauty tutorials and product reviews have dedicated audiences with high purchase intent.'
+                'beauty': 'Beauty tutorials and product reviews have dedicated audiences with high purchase intent.',
+                'fitness': 'Fitness and workout content has dedicated followers seeking transformation and motivation.',
+                'finance': 'Financial advice and investment content attracts viewers with high commercial intent.',
+                'diy': 'DIY and craft content shows practical value and encourages viewer engagement and sharing.',
+                'podcast': 'Long-form podcast content builds loyal audiences through personality and discussion.',
+                'anime': 'Anime content has passionate global fanbase with high engagement and community interaction.'
             };
             return descriptions[category] || 'Trending content category with growth potential.';
         }
@@ -1023,7 +1064,12 @@
                 'sports': 'Post highlights immediately after events for trending traffic',
                 'food': 'Show the final result in first 3 seconds to hook viewers',
                 'news': 'Speed is crucial - be first to cover breaking stories',
-                'beauty': 'Include product links in description for affiliate revenue opportunities'
+                'beauty': 'Include product links in description for affiliate revenue opportunities',
+                'fitness': 'Show before/after transformations and provide downloadable workout plans',
+                'finance': 'Back claims with data and sources to build credibility and trust',
+                'diy': 'Provide material lists and step-by-step instructions in description',
+                'podcast': 'Create shorter clips for social media to drive traffic to full episodes',
+                'anime': 'Cover seasonal anime and manga updates for consistent traffic'
             };
 
             return [
