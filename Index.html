@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#065fd4">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YT Trends">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiWW91VHViZSBUcmVuZHMgU3R1ZGlvIiwic2hvcnRfbmFtZSI6IllUIFRyZW5kcyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGYwZjBmIiwidGhlbWVfY29sb3IiOiIjMDY1ZmQ0IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0NzdmclMjB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnJTIwd2lkdGg9JzE5MicgJTIwaGVpZ2h0PScxOTInJTNFJTNDcmVjdCUyMHdpZHRoPScxOTInJTIwaGVpZ2h0PScxOTInJTIwZmlsbD0nJTIzMDY1ZmQ0Jy8lM0UlM0N0ZXh0JTIweD0nNTAlMjUnJTIweT0nNTAlMjUnJTIwZm9udC1zaXplPSc5MCclMjBmb250LWZhbWlseT0nQXJpYWwnJTIwZmlsbD0nd2hpdGUnJTIwdGV4dC1hbmNob3I9J21pZGRsZSclMjBkb21pbmFudC1iYXNlbGluZT0nbWlkZGxlJyUzRSVGMCU5RiU5MyU4QSUzQy90ZXh0JTNFJTNDL3N2ZyUzRSIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn0seyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnJTIweG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyUyMHdpZHRoPSc1MTInJTIwaGVpZ2h0PSc1MTInJTNFJTNDcmVjdCUyMHdpZHRoPSc1MTInJTIwaGVpZ2h0PSc1MTInJTIwZmlsbD0nJTIzMDY1ZmQ0Jy8lM0UlM0N0ZXh0JTIweD0nNTAlMjUnJTIweT0nNTAlMjUnJTIwZm9udC1zaXplPScyNDAnJTIwZm9udC1mYW1pbHk9J0FyaWFsJyUyMGZpbGw9J3doaXRlJyUyMHRleHQtYW5jaG9yPSdtaWRkbGUnJTIwZG9taW5hbnQtYmFzZWxpbmU9J21pZGRsZSclM0UlRjAlOUYlOTMlOEElM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' fill='%23065fd4' rx='40'/%3E%3Ctext x='50%25' y='50%25' font-size='90' font-family='Arial' fill='white' text-anchor='middle' dominant-baseline='middle'%3E📊%3C/text%3E%3C/svg%3E">
+    <title>YouTube Trends Studio</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 240px;
+            height: 100vh;
+            background: #212121;
+            padding: 16px 0;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+
+        .logo {
+            padding: 12px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .logo-icon {
+            font-size: 24px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 24px;
+            font-size: 14px;
+        }
+
+        .nav-item:hover {
+            background: #3a3a3a;
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: #3a3a3a;
+            color: #fff;
+            border-left: 3px solid #065fd4;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            width: 24px;
+        }
+
+        .main-content {
+            margin-left: 240px;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #212121;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #3a3a3a;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 400;
+            color: #fff;
+        }
+
+        .last-updated {
+            font-size: 12px;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .content-area {
+            padding: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #212121;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #3a3a3a;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-card {
+            background: #212121;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid #3a3a3a;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .video-list {
+            background: #212121;
+            border-radius: 8px;
+            border: 1px solid #3a3a3a;
+            overflow: hidden;
+        }
+
+        .video-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #3a3a3a;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .video-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #2a2a2a;
+            cursor: pointer;
+            transition: background 0.2s;
+            gap: 16px;
+        }
+
+        .video-item:hover {
+            background: #2a2a2a;
+        }
+
+        .video-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank-badge {
+            background: #065fd4;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .video-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .video-title {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .video-meta {
+            font-size: 12px;
+            color: #aaa;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .niche-card {
+            background: #212121;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .niche-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .niche-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .niche-score {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .niche-score.high {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+        }
+
+        .niche-score.medium {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+
+        .niche-score.low {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        .niche-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .niche-stat-item {
+            background: #0a0a0a;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .niche-stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #065fd4;
+            margin-bottom: 4px;
+        }
+
+        .niche-stat-label {
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .niche-keywords {
+            margin-bottom: 12px;
+        }
+
+        .niche-keywords-title {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+        .keyword-tag {
+            display: inline-block;
+            background: #3a3a3a;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin: 4px 4px 4px 0;
+        }
+
+        .niche-description {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .growth-tips {
+            background: #0a0a0a;
+            padding: 16px;
+            border-radius: 6px;
+            border-left: 3px solid #065fd4;
+        }
+
+        .tips-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .tip-item {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 6px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .tip-item:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #065fd4;
+        }
+
+        .keyword-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .keyword-item:last-child {
+            border-bottom: none;
+        }
+
+        .keyword-name {
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .keyword-count {
+            background: #3a3a3a;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: #aaa;
+        }
+
+        .spinner {
+            border: 3px solid #3a3a3a;
+            border-top: 3px solid #065fd4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-container {
+            background: #3a1a1a;
+            border: 1px solid #5a2a2a;
+            color: #ff6b6b;
+            padding: 16px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .top-bar {
+                padding: 12px 16px;
+            }
+
+            .content-area {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <span class="logo-icon">📊</span>
+            <span class="logo-text">Trends Studio</span>
+        </div>
+        
+        <div class="nav-item active" onclick="showView('dashboard')">
+            <span class="nav-icon">🏠</span>
+            <span>Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="showView('trending')">
+            <span class="nav-icon">🔥</span>
+            <span>Trending</span>
+        </div>
+        <div class="nav-item" onclick="showView('analytics')">
+            <span class="nav-icon">📈</span>
+            <span>Analytics</span>
+        </div>
+        <div class="nav-item" onclick="showView('niches')">
+            <span class="nav-icon">💡</span>
+            <span>Niche Finder</span>
+        </div>
+        <div class="nav-item" onclick="showView('keywords')">
+            <span class="nav-icon">🔑</span>
+            <span>Keywords</span>
+        </div>
+        <div class="nav-item" onclick="showView('history')">
+            <span class="nav-icon">📅</span>
+            <span>History</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            </div>
+            <div class="last-updated">
+                <span class="status-indicator"></span>
+                <span id="lastUpdated">Auto-updates every 6 hours</span>
+            </div>
+        </div>
+
+        <div class="content-area" id="content"></div>
+    </div>
+
+    <script>
+        // Configuration - ADD YOUR API KEY HERE
+        const YOUTUBE_API_KEY = 'AIzaSyB0UmfLhp8qFm7TuFaYtaLNgSIw72KmqEA';
+        const REGION_CODE = 'US';
+        
+        let allLogs = [];
+        let currentView = 'dashboard';
+        let charts = {};
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStoredData();
+            fetchTrends();
+            
+            // Auto-refresh every 6 hours (4 times per day = 4 API calls per day)
+            setInterval(fetchTrends, 6 * 60 * 60 * 1000);
+        });
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        async function fetchTrends() {
+            showLoading();
+            
+            try {
+                const response = await fetch(
+                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=${REGION_CODE}&maxResults=10&key=${YOUTUBE_API_KEY}`
+                );
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch trends');
+                }
+                
+                const data = await response.json();
+                const trends = processTrends(data);
+                
+                storeTrends(trends);
+                updateLastUpdatedTime();
+                showView(currentView);
+                
+            } catch (error) {
+                showError('Error fetching trends. Check your API key in the code.');
+                console.error(error);
+            }
+        }
+
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            document.getElementById('lastUpdated').textContent = `Last updated: ${timeString}`;
+        }
+
+        function processTrends(data) {
+            return data.items.map((item, idx) => ({
+                rank: idx + 1,
+                title: item.snippet.title,
+                channel: item.snippet.channelTitle,
+                views: parseInt(item.statistics.viewCount || 0),
+                likes: parseInt(item.statistics.likeCount || 0),
+                videoId: item.id,
+                url: `https://www.youtube.com/watch?v=${item.id}`
+            }));
+        }
+
+        function storeTrends(trends) {
+            const today = new Date().toISOString().split('T')[0];
+            const existingIndex = allLogs.findIndex(log => log.date === today);
+            
+            const log = {
+                date: today,
+                timestamp: new Date().toISOString(),
+                trends: trends
+            };
+            
+            if (existingIndex !== -1) {
+                allLogs[existingIndex] = log;
+            } else {
+                allLogs.push(log);
+            }
+            
+            if (allLogs.length > 30) {
+                allLogs = allLogs.slice(-30);
+            }
+            
+            localStorage.setItem('youtubeTrendsData', JSON.stringify(allLogs));
+        }
+
+        function loadStoredData() {
+            const stored = localStorage.getItem('youtubeTrendsData');
+            if (stored) {
+                allLogs = JSON.parse(stored);
+            }
+        }
+
+        function showView(view) {
+            currentView = view;
+            
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event?.target?.closest('.nav-item')?.classList.add('active');
+            
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+            
+            const titles = {
+                'dashboard': 'Dashboard',
+                'trending': 'Trending Videos',
+                'analytics': 'Analytics',
+                'niches': 'Niche Finder',
+                'keywords': 'Keyword Trends',
+                'history': 'History'
+            };
+            
+            document.getElementById('pageTitle').textContent = titles[view] || 'Dashboard';
+            
+            if (view === 'dashboard') displayDashboard();
+            else if (view === 'trending') displayTrending();
+            else if (view === 'analytics') displayAnalytics();
+            else if (view === 'niches') displayNiches();
+            else if (view === 'keywords') displayKeywords();
+            else if (view === 'history') displayHistory();
+            
+            // Close sidebar on mobile
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
+
+        function displayDashboard() {
+            if (allLogs.length === 0) {
+                showEmptyState('No data yet. Click REFRESH to fetch trending videos.');
+                return;
+            }
+
+            const latestLog = allLogs[allLogs.length - 1];
+            const totalVideos = allLogs.reduce((sum, log) => sum + log.trends.length, 0);
+            const avgViews = Math.floor(
+                allLogs.reduce((sum, log) => 
+                    sum + log.trends.reduce((s, t) => s + t.views, 0), 0
+                ) / totalVideos
+            );
+            
+            const keywords = extractAllKeywords();
+            const topKeyword = Object.keys(keywords).sort((a, b) => keywords[b] - keywords[a])[0] || 'N/A';
+
+            const html = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${allLogs.length}</div>
+                        <div class="stat-label">Days Tracked</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalVideos}</div>
+                        <div class="stat-label">Total Videos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${formatNumber(avgViews)}</div>
+                        <div class="stat-label">Avg Views</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${topKeyword}</div>
+                        <div class="stat-label">Top Keyword</div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">Views Over Time</div>
+                    <div class="chart-container">
+                        <canvas id="dashChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="video-list">
+                    <div class="video-header">Today's Top Trending</div>
+                    ${latestLog.trends.slice(0, 5).map(video => `
+                        <div class="video-item" onclick="window.open('${video.url}', '_blank')">
+                            <div class="rank-badge">${video.rank}</div>
+                            <div class="video-info">
+                                <div class="video-title">${video.title}</div>
+                                <div class="video-meta">
+                                    <span>${video.channel}</span>
+                                    <span>👁 ${formatNumber(video.views)}</span>
+                                    <span>👍 ${formatNumber(video.likes)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.getElementById('content').innerHTML = html;
+            
+            setTimeout(() => createDashChart(), 100);
+        }
+
+        function displayTrending() {
+            if (allLogs.length === 0) {
+                showEmptyState('No data yet. Click REFRESH to fetch trending videos.');
+                return;
+            }
+
+            const latestLog = allLogs[allLogs.length - 1];
+
+            const html = `
+                <div class="video-list">
+                    <div class="video-header">Top 10 Trending Videos</div>
+                    ${latestLog.trends.map(video => `
+                        <div class="video-item" onclick="window.open('${video.url}', '_blank')">
+                            <div class="rank-badge">${video.rank}</div>
+                            <div class="video-info">
+                                <div class="video-title">${video.title}</div>
+                                <div class="video-meta">
+                                    <span>${video.channel}</span>
+                                    <span>👁 ${formatNumber(video.views)}</span>
+                                    <span>👍 ${formatNumber(video.likes)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function displayAnalytics() {
+            if (allLogs.length === 0) {
+                showEmptyState('No data yet. Click REFRESH to fetch trending videos.');
+                return;
+            }
+
+            const html = `
+                <div class="chart-card">
+                    <div class="chart-title">Average Views Trend</div>
+                    <div class="chart-container">
+                        <canvas id="viewsChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-title">Top Channels Distribution</div>
+                    <div class="chart-container">
+                        <canvas id="channelsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">Keyword Frequency</div>
+                    <div class="chart-container">
+                        <canvas id="keywordsChart"></canvas>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content').innerHTML = html;
+            
+            setTimeout(() => {
+                createViewsChart();
+                createChannelsChart();
+                createKeywordsChart();
+            }, 100);
+        }
+
+        function displayKeywords() {
+            if (allLogs.length === 0) {
+                showEmptyState('No data yet. Click REFRESH to fetch trending videos.');
+                return;
+            }
+
+            const keywords = extractAllKeywords();
+            const sorted = Object.entries(keywords)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 20);
+
+            const html = `
+                <div class="keyword-list" style="background: #212121; border-radius: 8px; padding: 20px; border: 1px solid #3a3a3a;">
+                    ${sorted.map(([keyword, count]) => `
+                        <div class="keyword-item">
+                            <span class="keyword-name">${keyword}</span>
+                            <span class="keyword-count">${count}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function displayNiches() {
+            if (allLogs.length === 0) {
+                showEmptyState('No data yet. Data will populate as trends are collected.');
+                return;
+            }
+
+            const niches = analyzeNiches();
+            
+            const html = `
+                <div class="stats-grid" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value">${niches.length}</div>
+                        <div class="stat-label">Niches Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${niches.filter(n => n.score >= 80).length}</div>
+                        <div class="stat-label">High Potential</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${formatNumber(niches.reduce((sum, n) => sum + n.avgViews, 0) / niches.length)}</div>
+                        <div class="stat-label">Avg Niche Views</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${niches[0]?.competition || 'N/A'}</div>
+                        <div class="stat-label">Best Competition Level</div>
+                    </div>
+                </div>
+
+                ${niches.map(niche => `
+                    <div class="niche-card">
+                        <div class="niche-header">
+                            <div class="niche-title">${niche.name}</div>
+                            <div class="niche-score ${niche.score >= 80 ? 'high' : niche.score >= 60 ? 'medium' : 'low'}">
+                                ${niche.score}/100
+                            </div>
+                        </div>
+
+                        <div class="niche-description">
+                            ${niche.description}
+                        </div>
+
+                        <div class="niche-stats">
+                            <div class="niche-stat-item">
+                                <div class="niche-stat-value">${formatNumber(niche.avgViews)}</div>
+                                <div class="niche-stat-label">Avg Views</div>
+                            </div>
+                            <div class="niche-stat-item">
+                                <div class="niche-stat-value">${niche.frequency}</div>
+                                <div class="niche-stat-label">Trend Frequency</div>
+                            </div>
+                            <div class="niche-stat-item">
+                                <div class="niche-stat-value">${niche.competition}</div>
+                                <div class="niche-stat-label">Competition</div>
+                            </div>
+                            <div class="niche-stat-item">
+                                <div class="niche-stat-value">${niche.growth}</div>
+                                <div class="niche-stat-label">Growth Trend</div>
+                            </div>
+                        </div>
+
+                        <div class="niche-keywords">
+                            <div class="niche-keywords-title">Related Keywords:</div>
+                            ${niche.keywords.map(kw => `<span class="keyword-tag">${kw}</span>`).join('')}
+                        </div>
+
+                        <div class="growth-tips">
+                            <div class="tips-title">💡 Growth Strategy for ${niche.name}:</div>
+                            ${niche.tips.map(tip => `<div class="tip-item">${tip}</div>`).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+            
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function analyzeNiches() {
+            const keywords = extractAllKeywords();
+            const nicheCategories = {
+                'gaming': ['game', 'gaming', 'gameplay', 'minecraft', 'fortnite', 'roblox', 'valorant', 'league'],
+                'tech': ['tech', 'iphone', 'android', 'review', 'unboxing', 'apple', 'samsung', 'gadget'],
+                'entertainment': ['movie', 'film', 'trailer', 'react', 'reaction', 'funny', 'comedy', 'meme'],
+                'music': ['music', 'song', 'audio', 'lyrics', 'official', 'remix', 'cover', 'album'],
+                'education': ['tutorial', 'learn', 'course', 'study', 'guide', 'explained', 'howto', 'tips'],
+                'lifestyle': ['vlog', 'daily', 'life', 'routine', 'morning', 'night', 'family', 'travel'],
+                'sports': ['sports', 'football', 'basketball', 'soccer', 'highlights', 'goals', 'nba', 'nfl'],
+                'food': ['food', 'recipe', 'cooking', 'eating', 'mukbang', 'restaurant', 'chef', 'kitchen'],
+                'news': ['news', 'breaking', 'live', 'update', 'today', 'latest', 'coverage', 'report'],
+                'beauty': ['makeup', 'beauty', 'skincare', 'fashion', 'style', 'hair', 'outfit', 'cosmetics']
+            };
+
+            const niches = [];
+
+            for (const [category, relatedWords] of Object.entries(nicheCategories)) {
+                const matchingKeywords = Object.entries(keywords).filter(([word]) => 
+                    relatedWords.some(rw => word.includes(rw) || rw.includes(word))
+                );
+
+                if (matchingKeywords.length > 0) {
+                    const frequency = matchingKeywords.reduce((sum, [, count]) => sum + count, 0);
+                    const topKeywords = matchingKeywords.sort((a, b) => b[1] - a[1]).slice(0, 5).map(([word]) => word);
+                    
+                    // Calculate average views for this niche
+                    let totalViews = 0;
+                    let videoCount = 0;
+                    allLogs.forEach(log => {
+                        log.trends.forEach(trend => {
+                            if (relatedWords.some(rw => trend.title.toLowerCase().includes(rw))) {
+                                totalViews += trend.views;
+                                videoCount++;
+                            }
+                        });
+                    });
+                    const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 0;
+
+                    // Calculate competition level
+                    const competition = frequency > 15 ? 'High' : frequency > 8 ? 'Medium' : 'Low';
+                    
+                    // Calculate growth trend
+                    const recentFreq = allLogs.slice(-3).reduce((sum, log) => {
+                        return sum + log.trends.filter(t => 
+                            relatedWords.some(rw => t.title.toLowerCase().includes(rw))
+                        ).length;
+                    }, 0);
+                    const growth = recentFreq > frequency / 2 ? '📈 Rising' : recentFreq < frequency / 3 ? '📉 Declining' : '➡️ Stable';
+
+                    // Calculate opportunity score (0-100)
+                    const viewScore = Math.min((avgViews / 5000000) * 40, 40); // Max 40 points
+                    const freqScore = Math.min((frequency / 20) * 30, 30); // Max 30 points
+                    const compScore = competition === 'Low' ? 30 : competition === 'Medium' ? 20 : 10; // Max 30 points
+                    const score = Math.round(viewScore + freqScore + compScore);
+
+                    niches.push({
+                        name: category.charAt(0).toUpperCase() + category.slice(1),
+                        description: getNicheDescription(category),
+                        avgViews: avgViews,
+                        frequency: frequency,
+                        competition: competition,
+                        growth: growth,
+                        score: score,
+                        keywords: topKeywords,
+                        tips: getNicheTips(category, competition, growth)
+                    });
+                }
+            }
+
+            return niches.sort((a, b) => b.score - a.score);
+        }
+
+        function getNicheDescription(category) {
+            const descriptions = {
+                'gaming': 'Gaming content dominates YouTube with high engagement. Gameplay, reviews, and live streams perform well.',
+                'tech': 'Tech reviews and unboxings attract engaged audiences seeking product information before purchase.',
+                'entertainment': 'Entertainment content including reactions, comedy, and movie content has broad appeal.',
+                'music': 'Music videos and audio content consistently trend with high replay value and sharing potential.',
+                'education': 'Educational content has loyal audiences and good retention with tutorial and guide formats.',
+                'lifestyle': 'Lifestyle vlogs create personal connections with audiences through daily content and relatability.',
+                'sports': 'Sports highlights and analysis attract passionate fans seeking quick updates and memorable moments.',
+                'food': 'Food content from recipes to mukbangs has universal appeal and strong visual engagement.',
+                'news': 'News and current events content gets immediate traffic but requires constant updating.',
+                'beauty': 'Beauty tutorials and product reviews have dedicated audiences with high purchase intent.'
+            };
+            return descriptions[category] || 'Trending content category with growth potential.';
+        }
+
+        function getNicheTips(category, competition, growth) {
+            const baseTips = [
+                'Post consistently (3-5 times per week) to build algorithm momentum',
+                'Use trending keywords in titles and descriptions for discoverability',
+                'Create eye-catching thumbnails with bold text and contrasting colors',
+                'Engage with comments in first hour to boost engagement metrics'
+            ];
+
+            const competitionTips = {
+                'Low': 'Great opportunity! Low competition means easier to rank and gain visibility.',
+                'Medium': 'Moderate competition. Focus on unique angles and quality to stand out.',
+                'High': 'High competition. Need exceptional quality and unique perspective to succeed.'
+            };
+
+            const growthTips = {
+                '📈 Rising': 'This niche is growing! Jump in now to ride the wave of increased interest.',
+                '📉 Declining': 'Interest is declining. Consider pivoting or finding a fresh angle.',
+                '➡️ Stable': 'Stable niche with consistent audience. Reliable but needs differentiation.'
+            };
+
+            const categorySpecific = {
+                'gaming': 'Focus on trending games and create "Part 1" series for retention',
+                'tech': 'Compare products and create honest reviews - builds trust and authority',
+                'entertainment': 'React to viral content quickly while it\'s trending for maximum views',
+                'music': 'Create playlists and compilations for longer watch time',
+                'education': 'Structure videos with chapters and timestamps for better user experience',
+                'lifestyle': 'Build a personal brand - authenticity creates loyal subscribers',
+                'sports': 'Post highlights immediately after events for trending traffic',
+                'food': 'Show the final result in first 3 seconds to hook viewers',
+                'news': 'Speed is crucial - be first to cover breaking stories',
+                'beauty': 'Include product links in description for affiliate revenue opportunities'
+            };
+
+            return [
+                competitionTips[competition],
+                growthTips[growth],
+                categorySpecific[category],
+                ...baseTips.slice(0, 2)
+            ];
+        }
+
+        function displayHistory() {
+            if (allLogs.length === 0) {
+                showEmptyState('No data yet. Click REFRESH to fetch trending videos.');
+                return;
+            }
+
+            const html = allLogs.slice().reverse().map(log => `
+                <div class="video-list" style="margin-bottom: 16px;">
+                    <div class="video-header">${log.date}</div>
+                    ${log.trends.slice(0, 5).map(t => `
+                        <div class="video-item" onclick="window.open('${t.url}', '_blank')">
+                            <div class="rank-badge">${t.rank}</div>
+                            <div class="video-info">
+                                <div class="video-title">${t.title}</div>
+                                <div class="video-meta">
+                                    <span>${t.channel}</span>
+                                    <span>👁 ${formatNumber(t.views)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+            
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function createDashChart() {
+            const ctx = document.getElementById('dashChart');
+            if (!ctx) return;
+
+            const dates = allLogs.slice(-7).map(log => log.date);
+            const avgViews = allLogs.slice(-7).map(log => {
+                const total = log.trends.reduce((sum, t) => sum + t.views, 0);
+                return Math.floor(total / log.trends.length);
+            });
+
+            charts.dash = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Average Views',
+                        data: avgViews,
+                        borderColor: '#065fd4',
+                        backgroundColor: 'rgba(6, 95, 212, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#065fd4'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#aaa' },
+                            grid: { color: '#3a3a3a' }
+                        },
+                        x: {
+                            ticks: { color: '#aaa' },
+                            grid: { color: '#3a3a3a' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createViewsChart() {
+            const ctx = document.getElementById('viewsChart');
+            if (!ctx) return;
+
+            const dates = allLogs.map(log => log.date);
+            const avgViews = allLogs.map(log => {
+                const total = log.trends.reduce((sum, t) => sum + t.views, 0);
+                return Math.floor(total / log.trends.length);
+            });
+
+            charts.views = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Average Views',
+                        data: avgViews,
+                        borderColor: '#065fd4',
+                        backgroundColor: 'rgba(6, 95, 212, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#aaa' } }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#aaa' },
+                            grid: { color: '#3a3a3a' }
+                        },
+                        x: {
+                            ticks: { color: '#aaa' },
+                            grid: { color: '#3a3a3a' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createKeywordsChart() {
+            const ctx = document.getElementById('keywordsChart');
+            if (!ctx) return;
+
+            const keywords = extractAllKeywords();
+            const sorted = Object.entries(keywords)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            charts.keywords = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(([k]) => k),
+                    datasets: [{
+                        label: 'Frequency',
+                        data: sorted.map(([, v]) => v),
+                        backgroundColor: '#065fd4'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#aaa' },
+                            grid: { color: '#3a3a3a' }
+                        },
+                        x: {
+                            ticks: { color: '#aaa' },
+                            grid: { color: '#3a3a3a' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createChannelsChart() {
+            const ctx = document.getElementById('channelsChart');
+            if (!ctx) return;
+
+            const channels = {};
+            allLogs.forEach(log => {
+                log.trends.forEach(t => {
+                    channels[t.channel] = (channels[t.channel] || 0) + 1;
+                });
+            });
+
+            const sorted = Object.entries(channels)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 8);
+
+            charts.channels = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: sorted.map(([k]) => k),
+                    datasets: [{
+                        data: sorted.map(([, v]) => v),
+                        backgroundColor: [
+                            '#065fd4', '#0c7ae8', '#1e88e5', '#42a5f5',
+                            '#64b5f6', '#90caf9', '#bbdefb', '#e3f2fd'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#aaa', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function extractAllKeywords() {
+            const keywords = {};
+            const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were']);
+            
+            allLogs.forEach(log => {
+                log.trends.forEach(trend => {
+                    const words = trend.title.toLowerCase().match(/\b[a-z]+\b/g) || [];
+                    words.forEach(word => {
+                        if (word.length > 3 && !commonWords.has(word)) {
+                            keywords[word] = (keywords[word] || 0) + 1;
+                        }
+                    });
+                });
+            });
+            
+            return keywords;
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function showLoading() {
+            document.getElementById('content').innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>Loading trends...</p>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            document.getElementById('content').innerHTML = `
+                <div class="error-container">${message}</div>
+            `;
+        }
+
+        function showEmptyState(message) {
+            document.getElementById('content').innerHTML = `
+                <div class="empty-state">${message}</div>
+            `;
+        }
+    </script>
+</body>
+</html>
