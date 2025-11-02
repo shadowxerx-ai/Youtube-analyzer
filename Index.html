@@ -329,10 +329,6 @@
             cursor: pointer;
         }
 
-        .niche-description {
-            cursor: pointer;
-        }
-
         .niche-content {
             display: none;
             margin-top: 16px;
@@ -340,6 +336,10 @@
 
         .niche-card.expanded .niche-content {
             display: block;
+        }
+
+        .niche-description {
+            cursor: pointer;
         }
 
         .expand-icon {
@@ -628,7 +628,7 @@
             </div>
             <div class="last-updated">
                 <span class="status-indicator"></span>
-                <span id="lastUpdated">Auto-updates every 6 hours</span>
+                <span id="lastUpdated">Updates every 15 minutes</span>
             </div>
         </div>
 
@@ -644,14 +644,14 @@
         let currentView = 'dashboard';
         let charts = {};
         let lastFetchTime = 0;
-        const FETCH_INTERVAL = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+        const FETCH_INTERVAL = 15 * 60 * 1000; // 15 minutes in milliseconds (96 times per day)
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadStoredData();
             checkAndFetchTrends();
             
-            // Set up interval to check every minute if it's time to fetch
+            // Check every minute if it's time to fetch
             setInterval(checkAndFetchTrends, 60 * 1000);
         });
 
@@ -663,16 +663,15 @@
                 lastFetchTime = parseInt(storedLastFetch);
             }
             
-            // Only fetch if it's been more than 6 hours OR if we have no data
+            // Only fetch if it's been more than 15 minutes OR if we have no data
             if (now - lastFetchTime >= FETCH_INTERVAL || allLogs.length === 0) {
                 fetchTrends();
             } else {
                 // Just display existing data
                 showView(currentView);
                 const timeUntilNext = FETCH_INTERVAL - (now - lastFetchTime);
-                const hoursLeft = Math.floor(timeUntilNext / (60 * 60 * 1000));
-                const minutesLeft = Math.floor((timeUntilNext % (60 * 60 * 1000)) / (60 * 1000));
-                console.log(`Next update in ${hoursLeft}h ${minutesLeft}m`);
+                const minutesLeft = Math.floor(timeUntilNext / (60 * 1000));
+                console.log(`Next update in ${minutesLeft} minutes`);
             }
         }
 
@@ -1033,7 +1032,7 @@
 
                 ${niches.map((niche, idx) => `
                     <div class="niche-card" id="niche-${idx}">
-                        <div class="niche-header" onclick="event.stopPropagation(); toggleNicheExpand(${idx})">
+                        <div class="niche-header" onclick="event.stopPropagation(); toggleNicheExpand(${idx}, event);">
                             <div style="display: flex; align-items: center;">
                                 <div class="niche-title">${niche.name}</div>
                                 ${niche.isBeginnerFriendly ? '<span class="beginner-badge">BEST FOR BEGINNERS</span>' : ''}
@@ -1046,11 +1045,11 @@
                             </div>
                         </div>
 
-                        <div class="niche-description" onclick="event.stopPropagation(); toggleNicheExpand(${idx})">
+                        <div class="niche-description" onclick="event.stopPropagation(); toggleNicheExpand(${idx}, event);">
                             ${niche.description}
                         </div>
 
-                        <div class="niche-content">
+                        <div class="niche-content" onclick="event.stopPropagation();">
                             <div class="niche-stats">
                                 <div class="niche-stat-item">
                                     <div class="niche-stat-value">${formatNumber(niche.avgViews)}</div>
@@ -1122,7 +1121,11 @@
             document.getElementById('content').innerHTML = html;
         }
 
-        function toggleNicheExpand(idx) {
+        function toggleNicheExpand(idx, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
             const nicheEl = document.getElementById(`niche-${idx}`);
             if (nicheEl) {
                 nicheEl.classList.toggle('expanded');
@@ -1327,10 +1330,26 @@
                 'lifestyle': 'Natural lighting is best. iPhone/Android cameras are great. Be yourself - people love authenticity.'
             };
 
+            // Parse growth percentage for tips
+            const growthValue = parseInt(growth.match(/-?\d+/)?.[0] || '0');
+            let growthTip = '';
+            
+            if (growthValue > 20) {
+                growthTip = `🚀 Explosive growth! This niche is up ${growthValue}% - perfect timing to jump in and ride the momentum.`;
+            } else if (growthValue > 0) {
+                growthTip = `📈 Growing steadily at +${growthValue}%. Good opportunity with upward trajectory.`;
+            } else if (growthValue === 0) {
+                growthTip = '➡️ Stable audience means consistent, predictable views if you create quality content.';
+            } else if (growthValue > -20) {
+                growthTip = `↘️ Slight decline of ${growthValue}%. Still viable but focus on unique angles to stand out.`;
+            } else {
+                growthTip = `📉 Declining ${growthValue}%. Consider pivoting or finding a fresh angle in this space.`;
+            }
+
             return [
                 categoryTips[category] || baseTips[0],
                 competition === 'Very Low' ? '✨ Perfect timing! Very low competition means your content can rank easily.' : competition === 'Low' ? 'Good opportunity with manageable competition.' : 'Focus on unique angles to stand out.',
-                growth.includes('Rising') ? '📈 Jump in now! This niche is growing - early creators gain advantage.' : 'Stable audience means consistent views if you create quality content.',
+                growthTip,
                 ...baseTips.slice(1, 3)
             ];
         }
