@@ -1236,20 +1236,19 @@
             const niches = [];
 
             for (const [category, data] of Object.entries(beginnerNicheCategories)) {
-                // Search for matching content in trending
+                // Search for matching content in trending (unique videos only)
+                const uniqueVideos = getUniqueVideos();
                 let totalViews = 0;
                 let videoCount = 0;
                 let frequency = 0;
 
-                allLogs.forEach(log => {
-                    log.trends.forEach(trend => {
-                        const titleLower = trend.title.toLowerCase();
-                        if (data.keywords.some(kw => titleLower.includes(kw))) {
-                            totalViews += trend.views;
-                            videoCount++;
-                            frequency++;
-                        }
-                    });
+                uniqueVideos.forEach(video => {
+                    const titleLower = video.title.toLowerCase();
+                    if (data.keywords.some(kw => titleLower.includes(kw))) {
+                        totalViews += video.views;
+                        videoCount++;
+                        frequency++;
+                    }
                 });
 
                 // Calculate scores
@@ -1273,16 +1272,14 @@
                 // Is it HIGHLY beginner-friendly?
                 const isBeginnerFriendly = competition === 'Very Low' || competition === 'Low';
 
-                // Extract actual trending keywords
+                // Extract actual trending keywords (from unique videos)
                 const trendingKeywords = [];
-                allLogs.forEach(log => {
-                    log.trends.forEach(trend => {
-                        const titleLower = trend.title.toLowerCase();
-                        data.keywords.forEach(kw => {
-                            if (titleLower.includes(kw) && !trendingKeywords.includes(kw)) {
-                                trendingKeywords.push(kw);
-                            }
-                        });
+                uniqueVideos.forEach(video => {
+                    const titleLower = video.title.toLowerCase();
+                    data.keywords.forEach(kw => {
+                        if (titleLower.includes(kw) && !trendingKeywords.includes(kw)) {
+                            trendingKeywords.push(kw);
+                        }
                     });
                 });
 
@@ -1357,16 +1354,15 @@
         function getWorkingStrategies(category, allLogs, keywords) {
             // Analyze actual trending videos to extract what's working
             const strategies = [];
+            const uniqueVideos = getUniqueVideos();
             const recentVideos = [];
             
-            // Collect recent videos in this niche
-            allLogs.slice(-5).forEach(log => {
-                log.trends.forEach(video => {
-                    const titleLower = video.title.toLowerCase();
-                    if (keywords.some(kw => titleLower.includes(kw))) {
-                        recentVideos.push(video);
-                    }
-                });
+            // Collect unique videos in this niche
+            uniqueVideos.forEach(video => {
+                const titleLower = video.title.toLowerCase();
+                if (keywords.some(kw => titleLower.includes(kw))) {
+                    recentVideos.push(video);
+                }
             });
 
             // Analyze patterns in successful videos
@@ -1898,14 +1894,15 @@
             const keywords = {};
             const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were']);
             
-            allLogs.forEach(log => {
-                log.trends.forEach(trend => {
-                    const words = trend.title.toLowerCase().match(/\b[a-z]+\b/g) || [];
-                    words.forEach(word => {
-                        if (word.length > 3 && !commonWords.has(word)) {
-                            keywords[word] = (keywords[word] || 0) + 1;
-                        }
-                    });
+            // Use unique videos only
+            const uniqueVideos = getUniqueVideos();
+            
+            uniqueVideos.forEach(video => {
+                const words = video.title.toLowerCase().match(/\b[a-z]+\b/g) || [];
+                words.forEach(word => {
+                    if (word.length > 3 && !commonWords.has(word)) {
+                        keywords[word] = (keywords[word] || 0) + 1;
+                    }
                 });
             });
             
