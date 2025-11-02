@@ -313,7 +313,6 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 16px;
-            cursor: pointer;
             transition: all 0.3s;
         }
 
@@ -326,8 +325,17 @@
             border-color: #065fd4;
         }
 
+        .niche-header {
+            cursor: pointer;
+        }
+
+        .niche-description {
+            cursor: pointer;
+        }
+
         .niche-content {
             display: none;
+            margin-top: 16px;
         }
 
         .niche-card.expanded .niche-content {
@@ -1025,7 +1033,7 @@
 
                 ${niches.map((niche, idx) => `
                     <div class="niche-card" id="niche-${idx}">
-                        <div class="niche-header" onclick="toggleNicheExpand(${idx})">
+                        <div class="niche-header" onclick="event.stopPropagation(); toggleNicheExpand(${idx})">
                             <div style="display: flex; align-items: center;">
                                 <div class="niche-title">${niche.name}</div>
                                 ${niche.isBeginnerFriendly ? '<span class="beginner-badge">BEST FOR BEGINNERS</span>' : ''}
@@ -1038,7 +1046,7 @@
                             </div>
                         </div>
 
-                        <div class="niche-description" onclick="toggleNicheExpand(${idx})">
+                        <div class="niche-description" onclick="event.stopPropagation(); toggleNicheExpand(${idx})">
                             ${niche.description}
                         </div>
 
@@ -1115,9 +1123,10 @@
         }
 
         function toggleNicheExpand(idx) {
-            event.stopPropagation(); // Prevent event bubbling
             const nicheEl = document.getElementById(`niche-${idx}`);
-            nicheEl.classList.toggle('expanded');
+            if (nicheEl) {
+                nicheEl.classList.toggle('expanded');
+            }
         }
 
         function analyzeBeginnerNiches() {
