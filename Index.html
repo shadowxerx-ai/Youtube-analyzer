@@ -732,27 +732,21 @@
         }
 
         function storeTrends(trends) {
-            const today = new Date().toISOString().split('T')[0];
-            const existingIndex = allLogs.findIndex(log => log.date === today);
-            
-            const log = {
-                date: today,
-                timestamp: new Date().toISOString(),
-                trends: trends
-            };
-            
-            if (existingIndex !== -1) {
-                allLogs[existingIndex] = log;
-            } else {
-                allLogs.push(log);
-            }
-            
-            if (allLogs.length > 30) {
-                allLogs = allLogs.slice(-30);
-            }
-            
-            localStorage.setItem('youtubeTrendsData', JSON.stringify(allLogs));
-        }
+    const log = {
+        timestamp: new Date().toISOString(),
+        trends: trends
+    };
+    
+    // Always add as new entry (never replace)
+    allLogs.push(log);
+    
+    // Keep last 200 data points (about 2 weeks of 15-min intervals)
+    if (allLogs.length > 200) {
+        allLogs = allLogs.slice(-200);
+    }
+    
+    localStorage.setItem('youtubeTrendsData', JSON.stringify(allLogs));
+}
 
         function loadStoredData() {
             const stored = localStorage.getItem('youtubeTrendsData');
@@ -818,25 +812,34 @@
             }
 
             const latestLog = allLogs[allLogs.length - 1];
-            const totalVideos = allLogs.reduce((sum, log) => sum + log.trends.length, 0);
-            const avgViews = Math.floor(
-                allLogs.reduce((sum, log) => 
-                    sum + log.trends.reduce((s, t) => s + t.views, 0), 0
-                ) / totalVideos
-            );
+
+// Count unique videos by videoId
+const uniqueVideos = new Set();
+allLogs.forEach(log => {
+    log.trends.forEach(trend => {
+        uniqueVideos.add(trend.videoId);
+    });
+});
+const totalVideos = uniqueVideos.size;
+
+// Calculate average views from latest snapshot only (to avoid counting same video multiple times)
+const avgViews = Math.floor(
+    latestLog.trends.reduce((sum, t) => sum + t.views, 0) / latestLog.trends.length
+);
             
             const keywords = extractAllKeywords();
             const topKeyword = Object.keys(keywords).sort((a, b) => keywords[b] - keywords[a])[0] || 'N/A';
 
             const html = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value">${allLogs.length}</div>
-                        <div class="stat-label">Days Tracked</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${totalVideos}</div>
-                        <div class="stat-label">Total Videos</div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">${allLogs.length}</div>
+            <div class="stat-label">Snapshots Taken</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${totalVideos}</div>
+            <div class="stat-label">Unique Videos</div>
+        </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value">${formatNumber(avgViews)}</div>
@@ -972,7 +975,28 @@
                 createKeywordsChart();
             }, 100);
         }
-
+function extractAllKeywords() {
+    const keywords = {};
+    const seenVideos = new Set();
+    const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were']);
+    
+    allLogs.forEach(log => {
+        log.trends.forEach(trend => {
+            const uniqueKey = trend.videoId;
+            if (!seenVideos.has(uniqueKey)) {
+                seenVideos.add(uniqueKey);
+                const words = trend.title.toLowerCase().match(/\b[a-z]+\b/g) || [];
+                words.forEach(word => {
+                    if (word.length > 3 && !commonWords.has(word)) {
+                        keywords[word] = (keywords[word] || 0) + 1;
+                    }
+                });
+            }
+        });
+    });
+    
+    return keywords;
+}
         function displayKeywords() {
             if (allLogs.length === 0) {
                 showEmptyState('No data yet. Click REFRESH to fetch trending videos.');
@@ -997,7 +1021,148 @@
             
             document.getElementById('content').innerHTML = html;
         }
+function createViewsChart() {
+    const ctx = document.getElementById('viewsChart');
+    if (!ctx) return;
 
+    const labels = allLogs.map(log => {
+        const date = new Date(log.timestamp);
+        return date.toLocaleString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        });
+    });
+    
+    const avgViews = allLogs.map(log => {
+        const total = log.trends.reduce((sum, t) => sum + t.views, 0);
+        return Math.floor(total / log.trends.length);
+    });
+
+    charts.views = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Average Views',
+                data: avgViews,
+                borderColor: '#065fd4',
+                backgroundColor: 'rgba(6, 95, 212, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#aaa' } }
+            },
+            scales: {
+                y: {
+                    ticks: { color: '#aaa' },
+                    grid: { color: '#3a3a3a' }
+                },
+                x: {
+                    ticks: { 
+                        color: '#aaa',
+                        maxRotation: 45,
+                        minRotation: 45,
+                        maxTicksLimit: 20
+                    },
+                    grid: { color: '#3a3a3a' }
+                }
+            }
+        }
+    });
+}
+
+function createChannelsChart() {
+    const ctx = document.getElementById('channelsChart');
+    if (!ctx) return;
+
+    // Count unique videos per channel (not duplicates across snapshots)
+    const channelVideos = {};
+    const seenVideos = new Set();
+    
+    allLogs.forEach(log => {
+        log.trends.forEach(t => {
+            const uniqueKey = t.videoId;
+            if (!seenVideos.has(uniqueKey)) {
+                seenVideos.add(uniqueKey);
+                channelVideos[t.channel] = (channelVideos[t.channel] || 0) + 1;
+            }
+        });
+    });
+
+    const sorted = Object.entries(channelVideos)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
+
+    charts.channels = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: sorted.map(([k]) => k),
+            datasets: [{
+                data: sorted.map(([, v]) => v),
+                backgroundColor: [
+                    '#065fd4', '#0c7ae8', '#1e88e5', '#42a5f5',
+                    '#64b5f6', '#90caf9', '#bbdefb', '#e3f2fd'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#aaa', font: { size: 11 } }
+                }
+            }
+        }
+    });
+}
+
+function createKeywordsChart() {
+    const ctx = document.getElementById('keywordsChart');
+    if (!ctx) return;
+
+    const keywords = extractAllKeywords();
+    const sorted = Object.entries(keywords)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    charts.keywords = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sorted.map(([k]) => k),
+            datasets: [{
+                label: 'Frequency',
+                data: sorted.map(([, v]) => v),
+                backgroundColor: '#065fd4'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    ticks: { color: '#aaa' },
+                    grid: { color: '#3a3a3a' }
+                },
+                x: {
+                    ticks: { color: '#aaa' },
+                    grid: { color: '#3a3a3a' }
+                }
+            }
+        }
+    });
+}
         function displayNiches() {
             if (allLogs.length === 0) {
                 showEmptyState('No data yet. Data will populate as trends are collected.');
@@ -2391,9 +2556,20 @@
                 return;
             }
 
-            const html = allLogs.slice().reverse().map(log => `
+            const html = allLogs.slice().reverse().map((log, idx) => {
+                const date = new Date(log.timestamp);
+                const timeString = date.toLocaleString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true 
+                });
+                
+                return `
                 <div class="video-list" style="margin-bottom: 16px;">
-                    <div class="video-header">${log.date}</div>
+                    <div class="video-header">${timeString} (Snapshot #${allLogs.length - idx})</div>
                     ${log.trends.slice(0, 5).map(t => `
                         <div class="video-item" onclick="window.open('${t.url}', '_blank')">
                             <div class="rank-badge">${t.rank}</div>
@@ -2407,7 +2583,7 @@
                         </div>
                     `).join('')}
                 </div>
-            `).join('');
+            `}).join('');
             
             document.getElementById('content').innerHTML = html;
         }
@@ -2416,8 +2592,18 @@
             const ctx = document.getElementById('dashChart');
             if (!ctx) return;
 
-            const dates = allLogs.slice(-7).map(log => log.date);
-            const avgViews = allLogs.slice(-7).map(log => {
+            const labels = allLogs.slice(-20).map(log => {
+                const date = new Date(log.timestamp);
+                return date.toLocaleString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true 
+                });
+            });
+            
+            const avgViews = allLogs.slice(-20).map(log => {
                 const total = log.trends.reduce((sum, t) => sum + t.views, 0);
                 return Math.floor(total / log.trends.length);
             });
@@ -2425,7 +2611,7 @@
             charts.dash = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: dates,
+                    labels: labels,
                     datasets: [{
                         label: 'Average Views',
                         data: avgViews,
@@ -2448,50 +2634,11 @@
                             grid: { color: '#3a3a3a' }
                         },
                         x: {
-                            ticks: { color: '#aaa' },
-                            grid: { color: '#3a3a3a' }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createViewsChart() {
-            const ctx = document.getElementById('viewsChart');
-            if (!ctx) return;
-
-            const dates = allLogs.map(log => log.date);
-            const avgViews = allLogs.map(log => {
-                const total = log.trends.reduce((sum, t) => sum + t.views, 0);
-                return Math.floor(total / log.trends.length);
-            });
-
-            charts.views = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'Average Views',
-                        data: avgViews,
-                        borderColor: '#065fd4',
-                        backgroundColor: 'rgba(6, 95, 212, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { color: '#aaa' } }
-                    },
-                    scales: {
-                        y: {
-                            ticks: { color: '#aaa' },
-                            grid: { color: '#3a3a3a' }
-                        },
-                        x: {
-                            ticks: { color: '#aaa' },
+                            ticks: { 
+                                color: '#aaa',
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
                             grid: { color: '#3a3a3a' }
                         }
                     }
@@ -2500,43 +2647,62 @@
         }
 
         function createKeywordsChart() {
-            const ctx = document.getElementById('keywordsChart');
-            if (!ctx) return;
+    const ctx = document.getElementById('keywordsChart');
+    if (!ctx) return;
 
-            const keywords = extractAllKeywords();
-            const sorted = Object.entries(keywords)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
-
-            charts.keywords = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: sorted.map(([k]) => k),
-                    datasets: [{
-                        label: 'Frequency',
-                        data: sorted.map(([, v]) => v),
-                        backgroundColor: '#065fd4'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            ticks: { color: '#aaa' },
-                            grid: { color: '#3a3a3a' }
-                        },
-                        x: {
-                            ticks: { color: '#aaa' },
-                            grid: { color: '#3a3a3a' }
-                        }
+    // Extract keywords from unique videos only
+    const keywords = {};
+    const seenVideos = new Set();
+    const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were']);
+    
+    allLogs.forEach(log => {
+        log.trends.forEach(trend => {
+            const uniqueKey = trend.videoId;
+            if (!seenVideos.has(uniqueKey)) {
+                seenVideos.add(uniqueKey);
+                const words = trend.title.toLowerCase().match(/\b[a-z]+\b/g) || [];
+                words.forEach(word => {
+                    if (word.length > 3 && !commonWords.has(word)) {
+                        keywords[word] = (keywords[word] || 0) + 1;
                     }
+                });
+            }
+        });
+    });
+
+    const sorted = Object.entries(keywords)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    charts.keywords = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sorted.map(([k]) => k),
+            datasets: [{
+                label: 'Frequency',
+                data: sorted.map(([, v]) => v),
+                backgroundColor: '#065fd4'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    ticks: { color: '#aaa' },
+                    grid: { color: '#3a3a3a' }
+                },
+                x: {
+                    ticks: { color: '#aaa' },
+                    grid: { color: '#3a3a3a' }
                 }
-            });
+            }
         }
+    });
+}
 
         function createChannelsChart() {
             const ctx = document.getElementById('channelsChart');
