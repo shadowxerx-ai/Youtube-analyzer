@@ -628,7 +628,7 @@
             </div>
             <div class="last-updated">
                 <span class="status-indicator"></span>
-                <span id="lastUpdated">Updates every 15 minutes</span>
+                <span id="lastUpdated">Updates every 30 minutes</span>
             </div>
         </div>
 
@@ -641,10 +641,221 @@
         const REGION_CODE = 'US';
         
         let allLogs = [];
+        let nicheSearchData = {}; // Store niche-specific search results
         let currentView = 'dashboard';
         let charts = {};
         let lastFetchTime = 0;
-        const FETCH_INTERVAL = 15 * 60 * 1000; // 15 minutes in milliseconds (96 times per day)
+        let lastNicheSearchTime = 0;
+        const FETCH_INTERVAL = 30 * 60 * 1000; // 30 minutes (48 calls/day)
+        const NICHE_SEARCH_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours (once per day)1000;
+        // Keyword mapping for niche analysis
+
+async function fetchNicheData() {
+            console.log('Fetching niche-specific data for ALL niches...');
+            
+            // Define search queries for ALL niches
+            const allNicheQueries = {
+                'tutorial': 'tutorial how to guide learn',
+                'commentary': 'commentary reaction review breakdown',
+                'lists': 'top 10 best worst ranking',
+                'podcast': 'podcast interview talk discussion',
+                'gaming': 'gaming gameplay lets play',
+                'animation': 'animation animated story cartoon',
+                'documentary': 'documentary history investigation',
+                'lifestyle': 'vlog daily routine lifestyle',
+                'cooking': 'cooking recipe food meal',
+                'tech review': 'tech review unboxing gadget',
+                'fitness': 'workout fitness exercise training',
+                'educational': 'educational science lesson teach',
+                'comedy': 'comedy funny humor laugh',
+                'personal finance': 'money finance budget investing',
+                'music covers': 'cover music song acoustic',
+                'asmr': 'asmr relaxing sleep whisper',
+                'productivity': 'productivity organized planner notion',
+                'book reviews': 'book review reading novel',
+                'art': 'art drawing painting sketch',
+                'travel': 'travel trip vacation destination',
+                'photography': 'photography camera photo portrait',
+                'pets': 'dog cat pet puppy kitten',
+                'diy crafts': 'diy craft handmade project',
+                'fashion': 'fashion outfit style clothing',
+                'beauty': 'makeup beauty skincare routine',
+                'motivation': 'motivation inspire success mindset',
+                'minimalism': 'minimalism declutter organize minimal',
+                'language learning': 'language learning spanish french',
+                'plant care': 'plant houseplant garden grow',
+                'meditation': 'meditation mindfulness calm relax',
+                'car reviews': 'car vehicle automotive review',
+                'real estate': 'house home apartment property tour',
+                'side hustle': 'side hustle make money online',
+                'video editing': 'video editing premiere davinci',
+                'thrifting': 'thrift thrifting secondhand vintage',
+                'minimalist tech': 'minimal setup desk workspace',
+                'self improvement': 'self improvement habits discipline',
+                'cryptocurrency': 'crypto bitcoin ethereum trading',
+                'study with me': 'study with me studying student',
+                'instagram growth': 'instagram followers reels viral',
+                'streaming': 'streaming twitch live stream',
+                'journaling': 'journal journaling bullet planner',
+                'coffee': 'coffee espresso brew latte',
+                'resume': 'resume job interview career',
+                'budget': 'budget frugal cheap save money',
+                'college': 'college university dorm campus',
+                'phone setup': 'phone iphone android setup apps',
+                'skateboarding': 'skateboard skating trick skater',
+                'mental health': 'mental health anxiety therapy',
+                'watch collecting': 'watch watches timepiece collection',
+                'running': 'running run marathon training',
+                'parenting': 'parenting mom dad kids baby',
+                'relationship': 'relationship dating couple advice',
+                'cycling': 'cycling bike bicycle ride',
+                'sneakers': 'sneakers shoes kicks jordan nike',
+                'writing': 'writing writer creative writing',
+                'budgeting apps': 'budgeting app ynab mint expense',
+                'voice acting': 'voice acting voiceover narration',
+                'slow living': 'slow living peaceful cottagecore',
+                'coding projects': 'coding programming project build',
+                'van life': 'van life vanlife camper nomad',
+                'urban exploring': 'urban exploring urbex abandoned',
+                'morning routine': 'morning routine wake up start',
+                'philosophy': 'philosophy stoicism existential wisdom',
+                'street food': 'street food vendor local food'
+            };
+            
+            const newNicheData = {};
+            let successCount = 0;
+            let failCount = 0;
+            
+            // Search each niche (will take ~2-3 minutes total)
+            for (const [niche, query] of Object.entries(allNicheQueries)) {
+                try {
+                    const response = await fetch(
+                        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=15&order=viewCount&relevanceLanguage=en&key=${YOUTUBE_API_KEY}`
+                    );
+                    
+                    if (!response.ok) {
+                        console.error(`Failed to fetch ${niche}`);
+                        failCount++;
+                        continue;
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (!data.items || data.items.length === 0) {
+                        console.log(`No results for ${niche}`);
+                        continue;
+                    }
+                    
+                    // Get video statistics
+                    const videoIds = data.items.map(item => item.id.videoId).join(',');
+                    const statsResponse = await fetch(
+                        `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`
+                    );
+                    
+                    if (!statsResponse.ok) {
+                        failCount++;
+                        continue;
+                    }
+                    
+                    const statsData = await statsResponse.json();
+                    
+                    newNicheData[niche] = statsData.items.map((item, idx) => ({
+                        videoId: item.id,
+                        title: data.items[idx].snippet.title,
+                        channel: data.items[idx].snippet.channelTitle,
+                        views: parseInt(item.statistics.viewCount || 0),
+                        likes: parseInt(item.statistics.likeCount || 0)
+                    }));
+                    
+                    successCount++;
+                    console.log(`✓ ${niche} (${newNicheData[niche].length} videos)`);
+                    
+                    // Delay between requests to avoid rate limiting (300ms = safe)
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    
+                } catch (error) {
+                    console.error(`Error fetching ${niche}:`, error);
+                    failCount++;
+                }
+            }
+            
+            nicheSearchData = newNicheData;
+            lastNicheSearchTime = Date.now();
+            
+            localStorage.setItem('nicheSearchData', JSON.stringify(nicheSearchData));
+            localStorage.setItem('lastNicheSearchTime', lastNicheSearchTime.toString());
+            
+            console.log(`✅ Niche data complete! Success: ${successCount}, Failed: ${failCount}`);
+            console.log(`Total niches with data: ${Object.keys(nicheSearchData).length}`);
+        }
+const categoryKeywords = {
+    'Tutorial': ['tutorial', 'howto', 'guide', 'learn', 'explained', 'tips', 'beginner'],
+    'Commentary': ['react', 'reaction', 'review', 'explained', 'breakdown', 'analysis', 'commentary'],
+    'Lists': ['best', 'worst', 'list', 'ranking', 'facts', 'things', 'countdown'],
+    'Podcast': ['podcast', 'interview', 'talk', 'discussion', 'conversation', 'story'],
+    'Gaming': ['game', 'gaming', 'gameplay', 'playthrough', 'walkthrough', 'lets'],
+    'Animation': ['animation', 'animated', 'story', 'cartoon', 'storytime', 'animatic'],
+    'Documentary': ['documentary', 'history', 'mystery', 'investigation', 'deep', 'case'],
+    'Lifestyle': ['vlog', 'daily', 'routine', 'life', 'day', 'morning', 'night'],
+    'Cooking': ['cooking', 'recipe', 'food', 'baking', 'meal', 'cook', 'kitchen'],
+    'Tech review': ['tech', 'review', 'unboxing', 'phone', 'gadget', 'device', 'iphone', 'android'],
+    'Fitness': ['workout', 'fitness', 'exercise', 'training', 'gym', 'health', 'muscle'],
+    'Educational': ['science', 'math', 'education', 'school', 'study', 'lesson', 'teach'],
+    'Comedy': ['funny', 'comedy', 'humor', 'laugh', 'joke', 'prank', 'meme'],
+    'Personal finance': ['money', 'finance', 'budget', 'saving', 'invest', 'debt', 'income'],
+    'Music covers': ['cover', 'music', 'song', 'singing', 'acoustic', 'piano', 'guitar'],
+    'Asmr': ['asmr', 'relaxing', 'sleep', 'whisper', 'sound', 'tingles', 'calm'],
+    'Productivity': ['productivity', 'organized', 'planner', 'notion', 'journal', 'routine', 'efficient'],
+    'Book reviews': ['book', 'reading', 'review', 'novel', 'literature', 'author', 'bookshelf'],
+    'Art': ['art', 'drawing', 'painting', 'sketch', 'artist', 'illustration', 'creative'],
+    'Travel': ['travel', 'trip', 'vacation', 'destination', 'adventure', 'tourist', 'explore'],
+    'Photography': ['photo', 'photography', 'camera', 'lens', 'portrait', 'shot', 'photographer'],
+    'Pets': ['dog', 'cat', 'pet', 'puppy', 'kitten', 'animal', 'cute'],
+    'Diy crafts': ['diy', 'craft', 'handmade', 'make', 'create', 'project', 'build'],
+    'Fashion': ['fashion', 'outfit', 'style', 'clothing', 'wear', 'dress', 'trend'],
+    'Beauty': ['makeup', 'beauty', 'skincare', 'cosmetic', 'routine', 'skin', 'hair'],
+    'Motivation': ['motivation', 'inspire', 'success', 'mindset', 'goals', 'hustle', 'growth'],
+    'Minimalism': ['minimalism', 'declutter', 'organize', 'simple', 'minimal', 'less'],
+    'Language learning': ['language', 'learn', 'spanish', 'french', 'english', 'speaking', 'fluent'],
+    'Plant care': ['plant', 'garden', 'houseplant', 'grow', 'succulent', 'green', 'propagate'],
+    'Meditation': ['meditation', 'mindfulness', 'calm', 'peaceful', 'relax', 'breathe', 'zen'],
+    'Car reviews': ['car', 'vehicle', 'automotive', 'drive', 'test', 'review', 'auto'],
+    'Real estate': ['house', 'home', 'apartment', 'real estate', 'property', 'tour', 'living'],
+    'Side hustle': ['side hustle', 'earn', 'make money', 'online', 'passive', 'income', 'business'],
+    'Video editing': ['editing', 'premiere', 'davinci', 'capcut', 'edit', 'effects', 'transition'],
+    'Thrifting': ['thrift', 'thrifting', 'secondhand', 'vintage', 'haul', 'goodwill', 'resell'],
+    'Minimalist tech': ['minimal', 'setup', 'desk', 'workspace', 'gear', 'tech', 'simple'],
+    'Self improvement': ['self improvement', 'better', 'habits', 'discipline', 'change', 'transform'],
+    'Cryptocurrency': ['crypto', 'bitcoin', 'ethereum', 'blockchain', 'trading', 'nft', 'coin'],
+    'Study with me': ['study', 'studying', 'student', 'exam', 'college', 'school', 'notes'],
+    'Instagram growth': ['instagram', 'insta', 'reels', 'followers', 'viral', 'algorithm', 'social'],
+    'Streaming': ['stream', 'streaming', 'twitch', 'live', 'streamer', 'broadcast', 'chat'],
+    'Journaling': ['journal', 'journaling', 'diary', 'writing', 'planner', 'bullet', 'gratitude'],
+    'Coffee': ['coffee', 'espresso', 'brew', 'cafe', 'latte', 'barista', 'beans'],
+    'Resume': ['resume', 'cv', 'job', 'career', 'interview', 'application', 'hire'],
+    'Budget': ['budget', 'frugal', 'cheap', 'affordable', 'save', 'deal', 'discount'],
+    'College': ['college', 'university', 'dorm', 'campus', 'major', 'degree', 'freshman'],
+    'Phone setup': ['phone', 'iphone', 'android', 'apps', 'setup', 'homescreen', 'widgets'],
+    'Skateboarding': ['skateboard', 'skate', 'skating', 'trick', 'skater', 'board', 'ollie'],
+    'Mental health': ['mental health', 'anxiety', 'depression', 'therapy', 'wellness', 'healing'],
+    'Watch collecting': ['watch', 'watches', 'timepiece', 'luxury', 'collection', 'rolex', 'seiko'],
+    'Running': ['running', 'run', 'runner', 'marathon', 'jogging', 'race', 'training'],
+    'Parenting': ['parenting', 'mom', 'dad', 'kids', 'baby', 'toddler', 'family'],
+    'Relationship': ['relationship', 'dating', 'couple', 'boyfriend', 'girlfriend', 'marriage'],
+    'Cycling': ['cycling', 'bike', 'bicycle', 'ride', 'biking', 'cyclist', 'mountain bike'],
+    'Sneakers': ['sneakers', 'shoes', 'kicks', 'jordan', 'nike', 'yeezy', 'collection'],
+    'Writing': ['writing', 'writer', 'write', 'author', 'novel', 'story', 'creative writing'],
+    'Budgeting apps': ['budgeting app', 'ynab', 'mint', 'every dollar', 'expense', 'tracker'],
+    'Voice acting': ['voice', 'voice acting', 'voiceover', 'voice over', 'narration', 'dubbing'],
+    'Slow living': ['slow living', 'peaceful', 'simple life', 'cottagecore', 'cozy', 'homestead'],
+    'Coding projects': ['coding', 'programming', 'code', 'developer', 'project', 'build', 'software'],
+    'Van life': ['van life', 'vanlife', 'camper', 'rv', 'nomad', 'mobile', 'living'],
+    'Urban exploring': ['urban exploring', 'urbex', 'abandoned', 'exploration', 'explore'],
+    'Morning routine': ['morning routine', 'morning', 'routine', 'wake up', 'start', 'beginning'],
+    'Philosophy': ['philosophy', 'philosophical', 'stoicism', 'existential', 'meaning', 'wisdom'],
+    'Street food': ['street food', 'food stand', 'vendor', 'local food', 'market', 'street']
+};
+        // 15 minutes in milliseconds (96 times per day)
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -663,7 +874,7 @@
                 lastFetchTime = parseInt(storedLastFetch);
             }
             
-            // Only fetch if it's been more than 15 minutes OR if we have no data
+            // Only fetch if it's been more than 30 minutes OR if we have no data
             if (now - lastFetchTime >= FETCH_INTERVAL || allLogs.length === 0) {
                 fetchTrends();
             } else {
@@ -672,6 +883,11 @@
                 const timeUntilNext = FETCH_INTERVAL - (now - lastFetchTime);
                 const minutesLeft = Math.floor(timeUntilNext / (60 * 1000));
                 console.log(`Next update in ${minutesLeft} minutes`);
+            }
+            
+            // Check if we should do niche searches (once per day)
+            if (now - lastNicheSearchTime >= NICHE_SEARCH_INTERVAL || Object.keys(nicheSearchData).length === 0) {
+                fetchNicheData();
             }
         }
 
@@ -716,7 +932,12 @@
                 minute: '2-digit',
                 hour12: true 
             });
-            document.getElementById('lastUpdated').textContent = `Last updated: ${timeString}`;
+            
+            // Check if niche data exists
+            const nicheCount = Object.keys(nicheSearchData).length;
+            const nicheStatus = nicheCount > 0 ? ` | ${nicheCount} niches loaded` : ' | Loading niches...';
+            
+            document.getElementById('lastUpdated').textContent = `Updated: ${timeString}${nicheStatus}`;
         }
 
         function processTrends(data) {
@@ -752,6 +973,16 @@
             const stored = localStorage.getItem('youtubeTrendsData');
             if (stored) {
                 allLogs = JSON.parse(stored);
+            }
+            
+            const storedNicheData = localStorage.getItem('nicheSearchData');
+            if (storedNicheData) {
+                nicheSearchData = JSON.parse(storedNicheData);
+            }
+            
+            const storedNicheTime = localStorage.getItem('lastNicheSearchTime');
+            if (storedNicheTime) {
+                lastNicheSearchTime = parseInt(storedNicheTime);
             }
         }
 
@@ -840,24 +1071,22 @@ const avgViews = Math.floor(
             <div class="stat-value">${totalVideos}</div>
             <div class="stat-label">Unique Videos</div>
         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${formatNumber(avgViews)}</div>
-                        <div class="stat-label">Avg Views</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${topKeyword}</div>
-                        <div class="stat-label">Top Keyword</div>
-                    </div>
-                </div>
+        <div class="stat-card">
+            <div class="stat-value">${formatNumber(avgViews)}</div>
+            <div class="stat-label">Avg Views</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${topKeyword}</div>
+            <div class="stat-label">Top Keyword</div>
+        </div>
+    </div>
 
-                <div class="chart-card">
-                    <div class="chart-title">Views Over Time</div>
-                    <div class="chart-container">
-                        <canvas id="dashChart"></canvas>
-                    </div>
-                </div>
-
+    <div class="chart-card">
+        <div class="chart-title">Views Over Time</div>
+        <div class="chart-container">
+            <canvas id="dashChart"></canvas>
+        </div>
+    </div>
                 <div class="video-list">
                     <div class="video-header">Today's Top Trending</div>
                     ${latestLog.trends.slice(0, 5).map(video => `
@@ -2085,72 +2314,118 @@ function createKeywordsChart() {
             const niches = [];
 
             for (const [category, data] of Object.entries(beginnerNicheCategories)) {
-                // Search for matching content in trending
-                let totalViews = 0;
-                let videoCount = 0;
-                let frequency = 0;
+    // Search for matching content in trending - STRICT matching per niche
+    let totalViews = 0;
+    let videoCount = 0;
+    let frequency = 0;
+    const seenVideoIds = new Set(); // Track unique videos
 
-                allLogs.forEach(log => {
-                    log.trends.forEach(trend => {
-                        const titleLower = trend.title.toLowerCase();
-                        if (data.keywords.some(kw => titleLower.includes(kw))) {
-                            totalViews += trend.views;
-                            videoCount++;
-                            frequency++;
-                        }
-                    });
-                });
-
-                // Calculate scores
-                const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 2000000; // Default decent views
-                const competition = frequency > 12 ? 'Medium' : frequency > 6 ? 'Low' : 'Very Low';
-                
-                // Calculate growth
-                const recentFreq = allLogs.slice(-3).reduce((sum, log) => {
-                    return sum + log.trends.filter(t => 
-                        data.keywords.some(kw => t.title.toLowerCase().includes(kw))
-                    ).length;
-                }, 0);
-                const growth = recentFreq > frequency / 2 ? '📈 Rising' : recentFreq < frequency / 3 ? '📉 Stable' : '➡️ Stable';
-
-                // Beginner score calculation (prioritizes low competition and ease)
-                const competitionScore = competition === 'Very Low' ? 40 : competition === 'Low' ? 35 : 25;
-                const viewScore = Math.min((avgViews / 3000000) * 30, 30);
-                const easeScore = 30; // All these are beginner-friendly
-                const score = Math.round(competitionScore + viewScore + easeScore);
-
-                // Is it HIGHLY beginner-friendly?
-                const isBeginnerFriendly = competition === 'Very Low' || competition === 'Low';
-
-                // Extract actual trending keywords
-                const trendingKeywords = [];
-                allLogs.forEach(log => {
-                    log.trends.forEach(trend => {
-                        const titleLower = trend.title.toLowerCase();
-                        data.keywords.forEach(kw => {
-                            if (titleLower.includes(kw) && !trendingKeywords.includes(kw)) {
-                                trendingKeywords.push(kw);
-                            }
-                        });
-                    });
-                });
-
-                niches.push({
-                    name: category.charAt(0).toUpperCase() + category.slice(1).replace('documenta ry', 'Documentary'),
-                    description: data.description,
-                    beginnerReason: data.beginnerReason,
-                    contentIdeas: data.contentIdeas,
-                    avgViews: avgViews,
-                    frequency: Math.max(frequency, 1),
-                    competition: competition,
-                    growth: growth,
-                    score: score,
-                    keywords: trendingKeywords.length > 0 ? trendingKeywords.slice(0, 6) : data.keywords.slice(0, 6),
-                    isBeginnerFriendly: isBeginnerFriendly,
-                    tips: getBeginnerTips(category, competition, growth),
-                    workingStrategies: getWorkingStrategies(category, allLogs, data.keywords)
-                });
+    // First, check niche-specific search data if available
+    const nicheKey = category.toLowerCase().replace(/ /g, ' ');
+    if (nicheSearchData[category] || nicheSearchData[nicheKey]) {
+        const nicheVideos = nicheSearchData[category] || nicheSearchData[nicheKey];
+        nicheVideos.forEach(video => {
+            if (!seenVideoIds.has(video.videoId)) {
+                seenVideoIds.add(video.videoId);
+                totalViews += video.views;
+                videoCount++;
+                frequency++;
             }
+        });
+    }
+
+    // Also search in trending data for additional matches
+    allLogs.forEach(log => {
+        log.trends.forEach(trend => {
+            const titleLower = trend.title.toLowerCase();
+            const channelLower = trend.channel.toLowerCase();
+            
+            // Count how many keywords match
+            const matchingKeywords = data.keywords.filter(kw => 
+                titleLower.includes(kw) || channelLower.includes(kw)
+            );
+            
+            // Require at least 2 keyword matches OR 1 highly specific keyword (8+ chars)
+            const hasStrongMatch = matchingKeywords.length >= 2;
+            const hasSpecificMatch = matchingKeywords.some(kw => kw.length >= 8);
+            
+            if (hasStrongMatch || hasSpecificMatch) {
+                // Only count unique videos (avoid counting same video multiple times)
+                if (!seenVideoIds.has(trend.videoId)) {
+                    seenVideoIds.add(trend.videoId);
+                    totalViews += trend.views;
+                    videoCount++;
+                }
+                frequency++;
+            }
+        });
+    });
+
+    // Calculate scores
+    const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 2000000;
+    const competition = frequency > 12 ? 'Medium' : frequency > 6 ? 'Low' : 'Very Low';
+    
+    // Calculate growth
+    const recentFreq = allLogs.slice(-3).reduce((sum, log) => {
+        return sum + log.trends.filter(t => 
+            data.keywords.some(kw => t.title.toLowerCase().includes(kw))
+        ).length;
+    }, 0);
+    const growth = recentFreq > frequency / 2 ? '📈 Rising' : recentFreq < frequency / 3 ? '📉 Stable' : '➡️ Stable';
+
+    // Beginner score calculation
+    let competitionScore = competition === 'Very Low' ? 40 : competition === 'Low' ? 35 : 25;
+    let viewScore = Math.min((avgViews / 3000000) * 30, 30);
+    let easeScore = 30;
+    
+    if (videoCount === 0) {
+        competitionScore *= 0.3;
+        viewScore = 0;
+        easeScore *= 0.3;
+    }
+    
+    if (videoCount > 0 && videoCount <= 2) {
+        competitionScore *= 0.6;
+        viewScore *= 0.6;
+        easeScore *= 0.6;
+    }
+    
+    if (videoCount >= 3) {
+        viewScore *= 1.2;
+    }
+    
+    const score = Math.round(competitionScore + viewScore + easeScore);
+    const isBeginnerFriendly = competition === 'Very Low' || competition === 'Low';
+
+    // Extract actual trending keywords
+    const trendingKeywords = [];
+    allLogs.forEach(log => {
+        log.trends.forEach(trend => {
+            const titleLower = trend.title.toLowerCase();
+            data.keywords.forEach(kw => {
+                if (titleLower.includes(kw) && !trendingKeywords.includes(kw)) {
+                    trendingKeywords.push(kw);
+                }
+            });
+        });
+    });
+
+    niches.push({
+        name: category.charAt(0).toUpperCase() + category.slice(1).replace('documenta ry', 'Documentary'),
+        description: data.description,
+        beginnerReason: data.beginnerReason,
+        contentIdeas: data.contentIdeas,
+        avgViews: avgViews,
+        frequency: Math.max(frequency, 1),
+        competition: competition,
+        growth: growth,
+        score: score,
+        keywords: trendingKeywords.length > 0 ? trendingKeywords.slice(0, 6) : data.keywords.slice(0, 6),
+        isBeginnerFriendly: isBeginnerFriendly,
+        tips: getBeginnerTips(category, competition, growth),
+        workingStrategies: getWorkingStrategies(category.toLowerCase(), allLogs, data.keywords)
+    });
+}
 
             return niches.sort((a, b) => {
                 // Prioritize beginner-friendly, then score
@@ -2161,47 +2436,161 @@ function createKeywordsChart() {
         }
 
         function getBeginnerTips(category, competition, growth) {
-            const baseTips = [
-                'Start with what you know - your first videos will teach you more than any tutorial',
-                'Consistency beats perfection - post regularly even if videos aren\'t perfect',
-                'Study successful channels in your niche and note what works',
-                'Engage with every comment in your first 100 videos to build community'
-            ];
-
-            const categoryTips = {
-                'tutorial': 'Use free screen recording software like OBS. Keep tutorials under 10 minutes. Clear audio is more important than video quality.',
-                'commentary': 'Your unique perspective is the value. Don\'t worry about fancy editing. Phone mic is fine to start.',
-                'lists': 'Use Canva for thumbnails (free). Find Creative Commons images. Script your videos for better flow.',
-                'podcast': 'Zoom H1n or Blue Yeti are great starter mics ($60-100). Long-form content (30+ min) builds loyal audiences.',
-                'gaming': 'Focus on one game initially. Free games have bigger audiences. Edit out boring parts - pacing is key.',
-                'animation': 'Start with simple style - stick figures work! Focus on story over animation quality.',
-                'documentary': 'Pexels and Pixabay have free stock footage. Good narration is crucial. Research thoroughly.',
-                'lifestyle': 'Natural lighting is best. iPhone/Android cameras are great. Be yourself - people love authenticity.'
-            };
-
-            // Parse growth percentage for tips
-            const growthValue = parseInt(growth.match(/-?\d+/)?.[0] || '0');
-            let growthTip = '';
-            
-            if (growthValue > 20) {
-                growthTip = `🚀 Explosive growth! This niche is up ${growthValue}% - perfect timing to jump in and ride the momentum.`;
-            } else if (growthValue > 0) {
-                growthTip = `📈 Growing steadily at +${growthValue}%. Good opportunity with upward trajectory.`;
-            } else if (growthValue === 0) {
-                growthTip = '➡️ Stable audience means consistent, predictable views if you create quality content.';
-            } else if (growthValue > -20) {
-                growthTip = `↘️ Slight decline of ${growthValue}%. Still viable but focus on unique angles to stand out.`;
-            } else {
-                growthTip = `📉 Declining ${growthValue}%. Consider pivoting or finding a fresh angle in this space.`;
+    // Get keywords for this category
+    const nicheKeywords = categoryKeywords[category] || [];
+    
+    // Collect all videos matching this niche
+    const nicheVideos = [];
+    allLogs.forEach(log => {
+        log.trends.forEach(video => {
+            const titleLower = video.title.toLowerCase();
+            if (nicheKeywords.some(kw => titleLower.includes(kw))) {
+                nicheVideos.push(video);
             }
+        });
+    });
 
-            return [
-                categoryTips[category] || baseTips[0],
-                competition === 'Very Low' ? '✨ Perfect timing! Very low competition means your content can rank easily.' : competition === 'Low' ? 'Good opportunity with manageable competition.' : 'Focus on unique angles to stand out.',
-                growthTip,
-                ...baseTips.slice(1, 3)
-            ];
+    const tips = [];
+    
+    // Tip 1: Competition-based insight
+    if (competition === 'Very Low') {
+        tips.push('✨ VERY low competition - your videos can rank on page 1 within weeks');
+    } else if (competition === 'Low') {
+        tips.push('💚 Low competition with manageable field - good opportunity for beginners');
+    } else {
+        tips.push('⚠️ Higher competition - focus on unique angles and consistent quality to stand out');
+    }
+
+    // Tip 2: Growth trend insight
+    if (growth.includes('Rising')) {
+        tips.push('🚀 This niche is GROWING - perfect timing to establish yourself early');
+    } else if (growth.includes('Stable')) {
+        tips.push('➡️ Stable audience means predictable, consistent views with quality content');
+    } else {
+        tips.push('📉 Audience interest declining - consider a fresh angle or hybrid approach');
+    }
+
+    // Tip 3: Analyze what's working in titles
+    if (nicheVideos.length > 0) {
+        const titleWords = {};
+        const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'how', 'what', 'when', 'where', 'why', 'this', 'that', 'your', 'my', 'new', 'best', 'top', 'you']);
+        
+        nicheVideos.forEach(video => {
+            const words = video.title.toLowerCase().match(/\b[a-z]+\b/g) || [];
+            words.forEach(word => {
+                if (word.length > 4 && !commonWords.has(word) && !nicheKeywords.includes(word)) {
+                    titleWords[word] = (titleWords[word] || 0) + 1;
+                }
+            });
+        });
+
+        const topWords = Object.entries(titleWords)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([word]) => word);
+
+        if (topWords.length > 0) {
+            tips.push(`🔥 Trending keywords: "${topWords.join('", "')}" - include these in your titles`);
         }
+    }
+
+    // Tip 4: Average views insight
+    if (nicheVideos.length > 0) {
+        const avgViews = nicheVideos.reduce((sum, v) => sum + v.views, 0) / nicheVideos.length;
+        if (avgViews > 5000000) {
+            tips.push(`💰 High potential! Videos average ${formatNumber(avgViews)} views in this niche`);
+        } else if (avgViews > 1000000) {
+            tips.push(`📊 Good potential: videos averaging ${formatNumber(avgViews)} views`);
+        } else {
+            tips.push(`🎯 Niche market: focus on building loyal audience through consistency`);
+        }
+    }
+
+    // Tip 5: Engagement analysis
+    if (nicheVideos.length > 0) {
+        const avgEngagement = nicheVideos.reduce((sum, v) => sum + (v.likes / v.views), 0) / nicheVideos.length;
+        if (avgEngagement > 0.05) {
+            tips.push(`👍 High engagement (${(avgEngagement * 100).toFixed(1)}%) - audiences are passionate here`);
+        } else if (avgEngagement > 0.03) {
+            tips.push(`💬 Moderate engagement - build community by replying to every comment`);
+        } else {
+            tips.push(`📢 Create discussion-worthy content to boost engagement and comments`);
+        }
+    }
+
+    // Tip 6: Top performing channels
+    if (nicheVideos.length > 0) {
+        const channelFreq = {};
+        nicheVideos.forEach(v => {
+            channelFreq[v.channel] = (channelFreq[v.channel] || 0) + 1;
+        });
+        
+        const topChannels = Object.entries(channelFreq)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 2);
+        
+        if (topChannels.length > 0 && topChannels[0][1] >= 2) {
+            if (topChannels.length > 1) {
+                tips.push(`🏆 Study these successful channels: "${topChannels[0][0]}" and "${topChannels[1][0]}"`);
+            } else {
+                tips.push(`🏆 "${topChannels[0][0]}" is dominating - analyze their content strategy`);
+            }
+        }
+    }
+
+    // Tip 7: Recent trend analysis
+    const recentVideos = allLogs.slice(-3).flatMap(log => 
+        log.trends.filter(t => nicheKeywords.some(kw => t.title.toLowerCase().includes(kw)))
+    );
+    
+    if (recentVideos.length > nicheVideos.length * 0.4 && allLogs.length > 5) {
+        tips.push(`📈 ${recentVideos.length} videos trending recently - this niche is HOT right now!`);
+    } else if (recentVideos.length < nicheVideos.length * 0.2 && allLogs.length > 5) {
+        tips.push(`⏰ Activity slowing - be first to create fresh content and capture the market`);
+    }
+
+    // Tip 8: Title pattern analysis
+    if (nicheVideos.length >= 5) {
+        const hasNumbers = nicheVideos.filter(v => /\d+/.test(v.title)).length;
+        const hasQuestions = nicheVideos.filter(v => /\?/.test(v.title)).length;
+        const hasAllCaps = nicheVideos.filter(v => /[A-Z]{3,}/.test(v.title)).length;
+        
+        const total = nicheVideos.length;
+        
+        if (hasNumbers / total > 0.4) {
+            tips.push(`🔢 ${Math.round(hasNumbers/total*100)}% use numbers in titles - "Top 7" or "5 Ways" format works`);
+        }
+        if (hasQuestions / total > 0.3) {
+            tips.push(`❓ Question titles work here (${Math.round(hasQuestions/total*100)}%) - spark curiosity`);
+        }
+        if (hasAllCaps / total > 0.3) {
+            tips.push(`❗ ALL CAPS words common (${Math.round(hasAllCaps/total*100)}%) - add emphasis to titles`);
+        }
+    }
+
+    // Tip 9: View distribution insight
+    if (nicheVideos.length >= 3) {
+        const views = nicheVideos.map(v => v.views).sort((a, b) => b - a);
+        const topView = views[0];
+        const medianView = views[Math.floor(views.length / 2)];
+        
+        if (topView > medianView * 5) {
+            tips.push(`🎰 Hit-driven niche: top videos get ${formatNumber(topView)} while median is ${formatNumber(medianView)} - consistency + viral potential`);
+        } else {
+            tips.push(`📊 Consistent performance: views are stable across videos - reliable niche`);
+        }
+    }
+
+    // Fallback tips if no data available
+    if (tips.length < 3) {
+        tips.push('📱 Start with equipment you have - phone camera is fine for most niches');
+        tips.push('⏱️ Post 2-3 times per week consistently - algorithm rewards regularity');
+        tips.push('💬 Reply to every comment in your first 50 videos - builds loyal community');
+    }
+
+    // Return top 5-6 most relevant tips
+    return tips.slice(0, 6);
+}
 
         function getWorkingStrategies(category, allLogs, keywords) {
             // Analyze actual trending videos to extract what's working
@@ -2482,7 +2871,176 @@ function createKeywordsChart() {
 
             return niches.sort((a, b) => b.score - a.score);
         }
+        function getWorkingStrategies(category, allLogs, keywords) {
+    // Analyze actual trending videos to extract what's working
+    const strategies = [];
+    const recentVideos = [];
+    
+    // Collect recent videos in this niche - must match at least 2 keywords for accuracy
+    allLogs.slice(-5).forEach(log => {
+        log.trends.forEach(video => {
+            const titleLower = video.title.toLowerCase();
+            const matchCount = keywords.filter(kw => titleLower.includes(kw)).length;
+            // Require at least 2 keyword matches OR 1 match for very specific keywords (6+ chars)
+            const hasSpecificMatch = keywords.some(kw => kw.length >= 6 && titleLower.includes(kw));
+            if (matchCount >= 2 || hasSpecificMatch) {
+                recentVideos.push(video);
+            }
+        });
+    });
 
+    if (recentVideos.length === 0) {
+        return [{
+            title: '📊 Not Enough Data Yet',
+            description: 'No recent videos found in this niche. Keep collecting data to see what strategies are working.',
+            evidence: 'Continue running the trend tracker to gather insights'
+        }];
+    }
+
+    // Analyze patterns in successful videos
+    const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with']);
+    const titlePatterns = {};
+    
+    recentVideos.forEach(video => {
+        const words = video.title.toLowerCase().split(' ');
+        words.forEach(word => {
+            if (word.length > 3 && !commonWords.has(word)) {
+                titlePatterns[word] = (titlePatterns[word] || 0) + 1;
+            }
+        });
+    });
+
+    // Calculate average engagement
+    const avgEngagement = recentVideos.length > 0 
+        ? recentVideos.reduce((sum, v) => sum + (v.likes / v.views), 0) / recentVideos.length 
+        : 0;
+
+    // Get top channels in this niche
+    const channelCount = {};
+    recentVideos.forEach(v => {
+        channelCount[v.channel] = (channelCount[v.channel] || 0) + 1;
+    });
+    const topChannels = Object.keys(channelCount).sort((a, b) => channelCount[b] - channelCount[a]).slice(0, 3);
+
+    // Strategy 1: Most common keywords pattern
+    const topKeywords = Object.entries(titlePatterns)
+        .filter(([word]) => !keywords.includes(word))
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+    
+    if (topKeywords.length > 0) {
+        strategies.push({
+            title: `🔥 Hot Keywords: "${topKeywords.map(([w]) => w).join('", "')}"`,
+            description: `These words are appearing repeatedly in trending ${category} videos. Including them in your titles and content can help you ride the current wave of interest.`,
+            evidence: `Found in ${topKeywords[0][1]} of the top ${recentVideos.length} trending videos`
+        });
+    }
+
+    // Strategy 2: Title format analysis
+    const hasNumbers = recentVideos.filter(v => /\d+/.test(v.title)).length;
+    const hasQuestions = recentVideos.filter(v => /\?/.test(v.title)).length;
+    const hasHowTo = recentVideos.filter(v => /how to|how i/i.test(v.title)).length;
+    
+    if (hasNumbers > recentVideos.length * 0.3) {
+        strategies.push({
+            title: '🔢 Numbers-Based Titles Are Working',
+            description: `List-format and numbered titles are dominating this niche right now. Titles like "7 Ways to..." or "Top 10..." are getting clicked. Numbers create clear expectations and make content feel digestible.`,
+            evidence: `${Math.round(hasNumbers/recentVideos.length*100)}% of trending videos use numbers in titles`
+        });
+    } else if (hasQuestions > recentVideos.length * 0.3) {
+        strategies.push({
+            title: '❓ Question-Based Titles Drive Curiosity',
+            description: `Asking questions in titles is working well. Questions create curiosity gaps that viewers want to fill. They also match how people search on YouTube ("How do I...?", "What is...?").`,
+            evidence: `${Math.round(hasQuestions/recentVideos.length*100)}% of trending videos use question format`
+        });
+    } else if (hasHowTo > recentVideos.length * 0.25) {
+        strategies.push({
+            title: '📚 Tutorial/How-To Format Is Hot',
+            description: `Educational "how to" content is performing exceptionally well. People are searching for solutions and step-by-step guides. Position your content as the answer to a specific problem.`,
+            evidence: `${Math.round(hasHowTo/recentVideos.length*100)}% of trending videos are tutorial-style`
+        });
+    }
+
+    // Strategy 3: Engagement insight
+    if (avgEngagement > 0.04) {
+        strategies.push({
+            title: '💬 Highly Engaged Audience',
+            description: `This niche has unusually high engagement rates. Viewers are passionate and interactive. Create content that invites discussion, asks for opinions, and encourages comments. Reply to every comment to build community.`,
+            evidence: `${(avgEngagement * 100).toFixed(1)}% engagement rate (industry average is 3-4%)`
+        });
+    } else if (avgEngagement < 0.02) {
+        strategies.push({
+            title: '📢 Engagement Opportunity',
+            description: `Engagement is lower than average in this niche. This is your chance to stand out! End videos with compelling questions, create controversial takes (respectfully), and build a community around your unique perspective.`,
+            evidence: `Current engagement at ${(avgEngagement * 100).toFixed(1)}% - room to differentiate`
+        });
+    }
+
+    // Strategy 4: View count distribution
+    const views = recentVideos.map(v => v.views).sort((a, b) => b - a);
+    const topView = views[0];
+    const medianView = views[Math.floor(views.length / 2)];
+    
+    if (topView > medianView * 5) {
+        strategies.push({
+            title: '🎰 Viral Potential Niche',
+            description: `This niche is hit-driven - some videos explode while others get steady views. The top video has ${formatNumber(topView)} views while median is ${formatNumber(medianView)}. Focus on creating both consistent content AND swing for viral moments with bold angles.`,
+            evidence: `Top video outperforms median by ${Math.round(topView/medianView)}x - high variance niche`
+        });
+    } else {
+        strategies.push({
+            title: '📊 Consistent Performance Niche',
+            description: `Videos in this niche get relatively predictable views. Quality and consistency matter more than viral moments. Build a library of evergreen content that accumulates views over time. Focus on SEO and searchability.`,
+            evidence: `View counts are stable (top: ${formatNumber(topView)}, median: ${formatNumber(medianView)})`
+        });
+    }
+
+    // Strategy 5: Top performing channels
+    if (topChannels.length > 0) {
+        if (channelCount[topChannels[0]] >= 3) {
+            strategies.push({
+                title: `🏆 "${topChannels[0]}" Dominates This Space`,
+                description: `One channel is consistently trending in this niche. Study everything they do: posting schedule, thumbnail style, title format, video structure, hooks. They've cracked the code - learn from them, then add your unique twist.`,
+                evidence: `${topChannels[0]} has ${channelCount[topChannels[0]]} videos trending recently`
+            });
+        } else if (topChannels.length >= 3) {
+            strategies.push({
+                title: `🌟 Multiple Players, No Clear Leader`,
+                description: `This niche has ${topChannels.length} different channels trending recently: ${topChannels.join(', ')}. There's no dominant player, which means opportunity for newcomers. Find the gaps in what these channels aren't covering.`,
+                evidence: `${topChannels.length} different channels trending - competitive but open market`
+            });
+        }
+    }
+
+    // Strategy 6: Title length analysis
+    const avgTitleLength = recentVideos.reduce((sum, v) => sum + v.title.length, 0) / recentVideos.length;
+    if (avgTitleLength > 60) {
+        strategies.push({
+            title: '📝 Detailed Titles Perform Well',
+            description: `Longer, descriptive titles are working (avg ${Math.round(avgTitleLength)} characters). Viewers want to know exactly what they're getting. Be specific and front-load important keywords. Don't worry about exceeding YouTube's display limit.`,
+            evidence: `Average title length: ${Math.round(avgTitleLength)} characters`
+        });
+    } else if (avgTitleLength < 45) {
+        strategies.push({
+            title: '⚡ Short, Punchy Titles Win',
+            description: `Shorter titles (avg ${Math.round(avgTitleLength)} characters) are trending. Be concise and impactful. Create curiosity with fewer words. Make every word count and optimize for mobile viewing where titles are cut off sooner.`,
+            evidence: `Average title length: ${Math.round(avgTitleLength)} characters - brevity works here`
+        });
+    }
+
+    // Return top 3-4 strategies
+    return strategies.slice(0, 4);
+}
+function toggleNicheExpand(idx, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    const nicheEl = document.getElementById(`niche-${idx}`);
+    if (nicheEl) {
+        nicheEl.classList.toggle('expanded');
+    }
+}
         function getNicheDescription(category) {
             const descriptions = {
                 'gaming': 'Gaming content dominates YouTube with high engagement. Gameplay, reviews, and live streams perform well.',
