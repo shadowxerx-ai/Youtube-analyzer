@@ -684,7 +684,7 @@
             
             try {
                 const response = await fetch(
-                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=${REGION_CODE}&maxResults=10&key=${YOUTUBE_API_KEY}`
+                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=${REGION_CODE}&maxResults=50&key=${YOUTUBE_API_KEY}`
                 );
                 
                 if (!response.ok) {
@@ -888,7 +888,7 @@
 
             const html = `
                 <div class="video-list">
-                    <div class="video-header">Top 10 Trending Videos - Click to expand</div>
+                    <div class="video-header">Top 50 Trending Videos - Click to expand</div>
                     ${latestLog.trends.map(video => `
                         <div class="video-item" id="video-${video.rank}" onclick="toggleVideoExpand(${video.rank})">
                             <div class="video-item-header">
