@@ -585,6 +585,69 @@
                 padding: 16px;
             }
         }
+        .success-metric-box {
+            background: linear-gradient(135deg, #1a4d1a, #0a3d0a);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 2px solid #4caf50;
+        }
+
+        .success-metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .success-metric-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 6px;
+            transition: transform 0.2s;
+        }
+
+        .success-metric-item:hover {
+            transform: translateY(-2px);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .metric-label {
+            color: #aaa;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .metric-value {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .metric-subtext {
+            color: #4caf50;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .success-badge {
+            background: #4caf50;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 18px;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .success-metric-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -651,143 +714,598 @@
         // Keyword mapping for niche analysis
 
 async function fetchNicheData() {
-            console.log('Fetching niche-specific data for ALL niches...');
+    console.log('🔍 Fetching comprehensive niche data with growth tracking...');
+    
+    // Enhanced search queries - 5 queries per niche for better data
+    const allNicheQueries = {
+        'tutorial': [
+            'tutorial how to guide 2025',
+            'beginner tutorial easy learn',
+            'step by step tutorial explained',
+            'tutorial for beginners complete guide',
+            'learn tutorial tips tricks'
+        ],
+        'commentary': [
+            'commentary reaction analysis',
+            'breakdown explained review',
+            'deep dive commentary thoughts',
+            'reaction video commentary opinion',
+            'analysis breakdown review commentary'
+        ],
+        'lists': [
+            'top 10 best ranking',
+            'worst things countdown list',
+            'facts you need to know',
+            'best things ranked list',
+            'top things you should know'
+        ],
+        'podcast': [
+            'podcast interview talk show',
+            'discussion conversation episode',
+            'interview deep dive story',
+            'podcast episode conversation',
+            'talk show interview podcast'
+        ],
+        'gaming': [
+            'gaming gameplay walkthrough',
+            'lets play game tips',
+            'gaming highlights funny moments',
+            'game tutorial guide gaming',
+            'gaming playthrough gameplay'
+        ],
+        'animation': [
+            'animation animated story',
+            'cartoon storytime animated',
+            'animation comedy short',
+            'animated story cartoon',
+            'animation funny animated'
+        ],
+        'documentary': [
+            'documentary history true story',
+            'investigation mystery explained',
+            'deep dive documentary case',
+            'true story documentary history',
+            'documentary investigation mystery'
+        ],
+        'lifestyle': [
+            'vlog daily life routine',
+            'day in my life vlog',
+            'lifestyle morning routine',
+            'daily vlog lifestyle routine',
+            'life vlog day routine'
+        ],
+        'cooking': [
+            'cooking recipe easy meal',
+            'food recipe quick cooking',
+            'baking recipe cook',
+            'easy recipe cooking food',
+            'quick meal recipe cooking'
+        ],
+        'tech review': [
+            'tech review unboxing 2025',
+            'phone review gadget test',
+            'tech unboxing first impressions',
+            'review tech gadget unboxing',
+            'phone tech review test'
+        ],
+        'fitness': [
+            'workout fitness exercise',
+            'gym training routine',
+            'fitness transformation workout',
+            'exercise workout fitness training',
+            'gym workout routine fitness'
+        ],
+        'educational': [
+            'educational science explained',
+            'learn lesson teach',
+            'educational facts knowledge',
+            'explained educational learning',
+            'science educational teach learn'
+        ],
+        'comedy': [
+            'funny comedy humor',
+            'comedy skit laugh',
+            'funny moments prank',
+            'humor comedy funny skit',
+            'laugh comedy funny moments'
+        ],
+        'personal finance': [
+            'money finance budget tips',
+            'investing save money passive income',
+            'financial advice budget',
+            'money tips finance investing',
+            'budget finance save money'
+        ],
+        'music covers': [
+            'cover song music acoustic',
+            'singing cover performance',
+            'music cover guitar piano',
+            'acoustic cover song music',
+            'cover music singing performance'
+        ],
+        'asmr': [
+            'asmr relaxing sleep sounds',
+            'asmr whisper tingles',
+            'asmr calming relaxation',
+            'relaxing asmr sleep sounds',
+            'asmr sounds relaxation sleep'
+        ],
+        'productivity': [
+            'productivity tips organized',
+            'productive routine planner',
+            'productivity habits notion',
+            'organized productivity tips routine',
+            'productive habits productivity'
+        ],
+        'book reviews': [
+            'book review reading recommendations',
+            'book recommendations must read',
+            'reading book review thoughts',
+            'book review recommendations reading',
+            'reading recommendations book review'
+        ],
+        'art': [
+            'art drawing painting tutorial',
+            'artist sketch speedpaint',
+            'art process drawing',
+            'drawing art tutorial painting',
+            'artist art drawing sketch'
+        ],
+        'travel': [
+            'travel trip vacation vlog',
+            'travel guide destination',
+            'adventure travel explore',
+            'travel vlog trip vacation',
+            'travel destination guide adventure'
+        ],
+        'photography': [
+            'photography tips camera',
+            'photo editing tutorial',
+            'photography guide portrait',
+            'camera photography tips tutorial',
+            'photography editing photo tips'
+        ],
+        'pets': [
+            'dog puppy cute pet',
+            'cat kitten funny pet',
+            'pet care training',
+            'cute dog cat pet',
+            'pet training care tips'
+        ],
+        'diy crafts': [
+            'diy craft tutorial easy',
+            'handmade diy project',
+            'crafting diy ideas',
+            'easy diy craft tutorial',
+            'diy project crafting handmade'
+        ],
+        'fashion': [
+            'fashion outfit style lookbook',
+            'fashion haul styling',
+            'outfit ideas fashion',
+            'style fashion outfit lookbook',
+            'fashion styling outfit haul'
+        ],
+        'beauty': [
+            'makeup beauty routine tutorial',
+            'skincare beauty tips',
+            'makeup tutorial beauty',
+            'beauty makeup skincare routine',
+            'makeup tutorial beauty tips'
+        ],
+        'motivation': [
+            'motivation inspire success',
+            'motivational mindset goals',
+            'inspiration motivation speech',
+            'success motivation inspire mindset',
+            'motivational speech inspiration'
+        ],
+        'minimalism': [
+            'minimalism declutter organize',
+            'minimalist lifestyle simple',
+            'decluttering minimalism',
+            'minimalist simple minimalism',
+            'declutter organize minimalism'
+        ],
+        'language learning': [
+            'language learning tips fluent',
+            'learn spanish french language',
+            'language learning journey',
+            'fluent language learning tips',
+            'learn language tips fluent'
+        ],
+        'plant care': [
+            'plant care houseplant tips',
+            'gardening plants growing',
+            'houseplant care propagation',
+            'plant tips care houseplant',
+            'gardening plant care growing'
+        ],
+        'meditation': [
+            'meditation mindfulness guided',
+            'calm relaxation meditation',
+            'meditation breathing peaceful',
+            'guided meditation mindfulness calm',
+            'meditation relaxation peaceful'
+        ],
+        'car reviews': [
+            'car review test drive',
+            'vehicle automotive review',
+            'car comparison review',
+            'car test drive review',
+            'automotive car review vehicle'
+        ],
+        'real estate': [
+            'house tour home real estate',
+            'apartment tour property',
+            'home tour real estate',
+            'real estate house tour home',
+            'property home tour apartment'
+        ],
+        'side hustle': [
+            'side hustle make money online',
+            'passive income business ideas',
+            'online business side hustle',
+            'make money side hustle online',
+            'side hustle income business'
+        ],
+        'video editing': [
+            'video editing tutorial premiere',
+            'editing tips effects',
+            'davinci resolve editing',
+            'editing tutorial video premiere',
+            'video editing tips tutorial'
+        ],
+        'thrifting': [
+            'thrift haul thrifting finds',
+            'secondhand thrift shopping',
+            'thrift store vintage haul',
+            'thrifting haul thrift finds',
+            'thrift shopping secondhand haul'
+        ],
+        'minimalist tech': [
+            'minimal desk setup workspace',
+            'tech setup minimal aesthetic',
+            'minimalist setup tour',
+            'desk setup minimal tech',
+            'minimal workspace setup tech'
+        ],
+        'self improvement': [
+            'self improvement habits better',
+            'personal development growth',
+            'self improvement discipline',
+            'habits self improvement growth',
+            'self improvement personal development'
+        ],
+        'cryptocurrency': [
+            'crypto bitcoin trading explained',
+            'cryptocurrency investing tips',
+            'bitcoin ethereum crypto',
+            'crypto trading bitcoin investing',
+            'cryptocurrency bitcoin tips'
+        ],
+        'study with me': [
+            'study with me pomodoro',
+            'studying study session',
+            'study motivation student',
+            'study with me session',
+            'studying pomodoro study motivation'
+        ],
+        'instagram growth': [
+            'instagram growth tips followers',
+            'instagram reels viral algorithm',
+            'grow instagram followers',
+            'instagram tips growth followers',
+            'instagram algorithm growth reels'
+        ],
+        'streaming': [
+            'streaming setup twitch tips',
+            'live stream streaming guide',
+            'streamer setup broadcast',
+            'streaming twitch setup tips',
+            'stream setup streaming guide'
+        ],
+        'journaling': [
+            'journaling bullet journal ideas',
+            'journal with me planner',
+            'journaling routine gratitude',
+            'bullet journal journaling ideas',
+            'journaling planner journal routine'
+        ],
+        'coffee': [
+            'coffee brewing espresso guide',
+            'coffee recipe latte',
+            'coffee cafe barista',
+            'espresso coffee brewing guide',
+            'coffee latte recipe brewing'
+        ],
+        'resume': [
+            'resume tips job interview',
+            'career advice resume',
+            'job interview resume tips',
+            'resume career job tips',
+            'job resume interview career'
+        ],
+        'budget': [
+            'budget tips frugal living',
+            'budgeting save money cheap',
+            'frugal budget challenge',
+            'budget frugal tips living',
+            'budgeting budget save money'
+        ],
+        'college': [
+            'college vlog university student',
+            'college tips dorm campus',
+            'college advice freshman',
+            'university college student vlog',
+            'college campus tips dorm'
+        ],
+        'phone setup': [
+            'phone setup iphone android',
+            'iphone home screen setup',
+            'phone apps organization',
+            'iphone phone setup android',
+            'phone setup apps screen'
+        ],
+        'skateboarding': [
+            'skateboarding tricks tutorial',
+            'skate skating trick',
+            'skateboard learn tricks',
+            'skateboarding tutorial tricks skate',
+            'skate tricks skateboarding learn'
+        ],
+        'mental health': [
+            'mental health anxiety tips',
+            'mental health journey therapy',
+            'anxiety mental health advice',
+            'mental health tips anxiety therapy',
+            'mental health advice journey'
+        ],
+        'watch collecting': [
+            'watch collection review timepiece',
+            'watches watch review',
+            'watch collecting luxury',
+            'watch collection watches review',
+            'watches collecting watch luxury'
+        ],
+        'running': [
+            'running training marathon tips',
+            'running motivation workout',
+            'runner training run',
+            'running marathon training tips',
+            'running workout motivation training'
+        ],
+        'parenting': [
+            'parenting tips mom dad',
+            'parenting vlog kids family',
+            'parenting advice baby',
+            'parenting mom dad tips kids',
+            'parenting family vlog advice'
+        ],
+        'relationship': [
+            'relationship advice dating tips',
+            'relationship couple advice',
+            'dating relationship tips',
+            'relationship dating advice tips',
+            'relationship tips couple dating'
+        ],
+        'cycling': [
+            'cycling bike ride vlog',
+            'bicycle cycling tips',
+            'cycling workout training',
+            'cycling bike bicycle ride',
+            'cycling training bike workout'
+        ],
+        'sneakers': [
+            'sneakers review collection kicks',
+            'sneaker unboxing review',
+            'shoes sneakers collection',
+            'sneakers collection sneaker review',
+            'sneaker shoes kicks collection'
+        ],
+        'writing': [
+            'writing tips creative writing',
+            'writer writing advice',
+            'creative writing tutorial',
+            'writing creative tips advice',
+            'writing tutorial writer creative'
+        ],
+        'budgeting apps': [
+            'budgeting app ynab tutorial',
+            'budget app review expense',
+            'budgeting app guide',
+            'budgeting ynab app tutorial',
+            'budget app budgeting expense'
+        ],
+        'voice acting': [
+            'voice acting tutorial tips',
+            'voiceover voice acting',
+            'voice acting impressions',
+            'voice acting voiceover tutorial',
+            'voiceover voice acting tips'
+        ],
+        'slow living': [
+            'slow living peaceful lifestyle',
+            'cottagecore slow living',
+            'slow living simple life',
+            'slow living lifestyle peaceful',
+            'slow living cottagecore simple'
+        ],
+        'coding projects': [
+            'coding project tutorial build',
+            'programming project code',
+            'coding tutorial project',
+            'coding project programming build',
+            'code project tutorial programming'
+        ],
+        'van life': [
+            'van life tour camper',
+            'vanlife nomad living',
+            'van conversion tour',
+            'van life vanlife tour camper',
+            'van life nomad conversion'
+        ],
+        'urban exploring': [
+            'urban exploring abandoned urbex',
+            'urbex exploration abandoned',
+            'urban exploration hidden',
+            'urban exploring urbex abandoned',
+            'urbex urban exploration hidden'
+        ],
+        'morning routine': [
+            'morning routine productive',
+            'morning routine vlog realistic',
+            'morning routine 5am productive',
+            'morning routine productive vlog',
+            'morning routine realistic 5am'
+        ],
+        'philosophy': [
+            'philosophy explained stoicism',
+            'philosophical thoughts wisdom',
+            'philosophy life meaning',
+            'philosophy stoicism explained wisdom',
+            'philosophy philosophical life meaning'
+        ],
+        'street food': [
+            'street food tour vendor',
+            'street food trying local',
+            'food street market',
+            'street food vendor tour local',
+            'street food market food vendor'
+        ]
+    };
+    
+    const newNicheData = {};
+    let successCount = 0;
+    let failCount = 0;
+    let totalVideosCollected = 0;
+    let totalApiCalls = 0;
+    
+    // Search each niche with multiple queries for comprehensive data
+    for (const [niche, queries] of Object.entries(allNicheQueries)) {
+        try {
+            const nicheVideos = [];
+            const seenVideoIds = new Set();
             
-            // Define search queries for ALL niches
-            const allNicheQueries = {
-                'tutorial': 'tutorial how to guide learn',
-                'commentary': 'commentary reaction review breakdown',
-                'lists': 'top 10 best worst ranking',
-                'podcast': 'podcast interview talk discussion',
-                'gaming': 'gaming gameplay lets play',
-                'animation': 'animation animated story cartoon',
-                'documentary': 'documentary history investigation',
-                'lifestyle': 'vlog daily routine lifestyle',
-                'cooking': 'cooking recipe food meal',
-                'tech review': 'tech review unboxing gadget',
-                'fitness': 'workout fitness exercise training',
-                'educational': 'educational science lesson teach',
-                'comedy': 'comedy funny humor laugh',
-                'personal finance': 'money finance budget investing',
-                'music covers': 'cover music song acoustic',
-                'asmr': 'asmr relaxing sleep whisper',
-                'productivity': 'productivity organized planner notion',
-                'book reviews': 'book review reading novel',
-                'art': 'art drawing painting sketch',
-                'travel': 'travel trip vacation destination',
-                'photography': 'photography camera photo portrait',
-                'pets': 'dog cat pet puppy kitten',
-                'diy crafts': 'diy craft handmade project',
-                'fashion': 'fashion outfit style clothing',
-                'beauty': 'makeup beauty skincare routine',
-                'motivation': 'motivation inspire success mindset',
-                'minimalism': 'minimalism declutter organize minimal',
-                'language learning': 'language learning spanish french',
-                'plant care': 'plant houseplant garden grow',
-                'meditation': 'meditation mindfulness calm relax',
-                'car reviews': 'car vehicle automotive review',
-                'real estate': 'house home apartment property tour',
-                'side hustle': 'side hustle make money online',
-                'video editing': 'video editing premiere davinci',
-                'thrifting': 'thrift thrifting secondhand vintage',
-                'minimalist tech': 'minimal setup desk workspace',
-                'self improvement': 'self improvement habits discipline',
-                'cryptocurrency': 'crypto bitcoin ethereum trading',
-                'study with me': 'study with me studying student',
-                'instagram growth': 'instagram followers reels viral',
-                'streaming': 'streaming twitch live stream',
-                'journaling': 'journal journaling bullet planner',
-                'coffee': 'coffee espresso brew latte',
-                'resume': 'resume job interview career',
-                'budget': 'budget frugal cheap save money',
-                'college': 'college university dorm campus',
-                'phone setup': 'phone iphone android setup apps',
-                'skateboarding': 'skateboard skating trick skater',
-                'mental health': 'mental health anxiety therapy',
-                'watch collecting': 'watch watches timepiece collection',
-                'running': 'running run marathon training',
-                'parenting': 'parenting mom dad kids baby',
-                'relationship': 'relationship dating couple advice',
-                'cycling': 'cycling bike bicycle ride',
-                'sneakers': 'sneakers shoes kicks jordan nike',
-                'writing': 'writing writer creative writing',
-                'budgeting apps': 'budgeting app ynab mint expense',
-                'voice acting': 'voice acting voiceover narration',
-                'slow living': 'slow living peaceful cottagecore',
-                'coding projects': 'coding programming project build',
-                'van life': 'van life vanlife camper nomad',
-                'urban exploring': 'urban exploring urbex abandoned',
-                'morning routine': 'morning routine wake up start',
-                'philosophy': 'philosophy stoicism existential wisdom',
-                'street food': 'street food vendor local food'
-            };
-            
-            const newNicheData = {};
-            let successCount = 0;
-            let failCount = 0;
-            
-            // Search each niche (will take ~2-3 minutes total)
-            for (const [niche, query] of Object.entries(allNicheQueries)) {
+            // Execute all 5 searches per niche for maximum coverage
+            for (const query of queries) {
                 try {
-                    response = await fetch(
-                        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=25&order=viewCount&relevanceLanguage=en&key=${YOUTUBE_API_KEY}`
+                    const response = await fetch(
+                        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=50&order=viewCount&relevanceLanguage=en&publishedAfter=2024-01-01T00:00:00Z&key=${YOUTUBE_API_KEY}`
                     );
                     
+                    totalApiCalls++;
+                    
                     if (!response.ok) {
-                        console.error(`Failed to fetch ${niche}`);
-                        failCount++;
+                        console.warn(`⚠️ Query failed for ${niche}: "${query}"`);
                         continue;
                     }
                     
                     const data = await response.json();
                     
                     if (!data.items || data.items.length === 0) {
-                        console.log(`No results for ${niche}`);
                         continue;
                     }
                     
-                    // Get video statistics
-                    const videoIds = data.items.map(item => item.id.videoId).join(',');
+                    // Get video statistics (batch request)
+                    const videoIds = data.items
+                        .map(item => item.id.videoId)
+                        .filter(id => !seenVideoIds.has(id))
+                        .slice(0, 50);
+                    
+                    if (videoIds.length === 0) continue;
+                    
                     const statsResponse = await fetch(
-                        `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`
+                        `https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails,snippet&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`
                     );
                     
-                    if (!statsResponse.ok) {
-                        failCount++;
-                        continue;
-                    }
+                    totalApiCalls++;
+                    
+                    if (!statsResponse.ok) continue;
                     
                     const statsData = await statsResponse.json();
                     
-                    newNicheData[niche] = statsData.items.map((item, idx) => ({
-                        videoId: item.id,
-                        title: data.items[idx].snippet.title,
-                        channel: data.items[idx].snippet.channelTitle,
-                        views: parseInt(item.statistics.viewCount || 0),
-                        likes: parseInt(item.statistics.likeCount || 0)
-                    }));
+                    // Process and filter videos with enhanced data
+                    statsData.items.forEach((item, idx) => {
+                        const videoId = item.id;
+                        if (seenVideoIds.has(videoId)) return;
+                        
+                        const views = parseInt(item.statistics.viewCount || 0);
+                        const likes = parseInt(item.statistics.likeCount || 0);
+                        const comments = parseInt(item.statistics.commentCount || 0);
+                        
+                        // Filter out shorts and very low quality videos
+                        const duration = item.contentDetails?.duration || '';
+                        const isShort = duration.includes('PT') && !duration.includes('M') && parseInt(duration.match(/(\d+)S/)?.[1] || '0') <= 60;
+                        
+                        // Parse publish date for recency score
+                        const publishDate = new Date(item.snippet.publishedAt);
+                        const daysOld = (Date.now() - publishDate.getTime()) / (1000 * 60 * 60 * 24);
+                        
+                        // Keep only substantial videos with engagement
+                        if (!isShort && views >= 1000) {
+                            seenVideoIds.add(videoId);
+                            nicheVideos.push({
+                                videoId: videoId,
+                                title: item.snippet.title || '',
+                                channel: item.snippet.channelTitle || '',
+                                channelId: item.snippet.channelId || '',
+                                views: views,
+                                likes: likes,
+                                comments: comments,
+                                publishedAt: item.snippet.publishedAt || '',
+                                daysOld: Math.floor(daysOld),
+                                duration: duration,
+                                // Calculate daily view velocity
+                                dailyViews: daysOld > 0 ? Math.floor(views / daysOld) : views
+                            });
+                        }
+                    });
                     
-                    successCount++;
-                    console.log(`✓ ${niche} (${newNicheData[niche].length} videos)`);
-                    
-                    // Delay between requests to avoid rate limiting (300ms = safe)
+                    // Delay between requests (300ms = safe for API)
                     await new Promise(resolve => setTimeout(resolve, 300));
                     
-                } catch (error) {
-                    console.error(`Error fetching ${niche}:`, error);
-                    failCount++;
+                } catch (queryError) {
+                    console.warn(`⚠️ Error on query "${query}":`, queryError.message);
                 }
             }
             
-            nicheSearchData = newNicheData;
-            lastNicheSearchTime = Date.now();
+// Only store niches with substantial data (at least 30 videos for statistical reliability)
+// 30+ videos provides enough data points for accurate trend analysis
+if (nicheVideos.length >= 30) {
+                // Sort by views and keep top 150 most relevant
+                newNicheData[niche] = nicheVideos
+                    .sort((a, b) => b.views - a.views)
+                    .slice(0, 150);
+                
+                successCount++;
+                totalVideosCollected += newNicheData[niche].length;
+                console.log(`✅ ${niche}: ${newNicheData[niche].length} videos collected`);
+            } else {
+                console.log(`⚠️ ${niche}: Insufficient data (${nicheVideos.length} videos)`);
+                failCount++;
+            }
             
-            localStorage.setItem('nicheSearchData', JSON.stringify(nicheSearchData));
-            localStorage.setItem('lastNicheSearchTime', lastNicheSearchTime.toString());
-            
-            console.log(`✅ Niche data complete! Success: ${successCount}, Failed: ${failCount}`);
-            console.log(`Total niches with data: ${Object.keys(nicheSearchData).length}`);
+        } catch (error) {
+            console.error(`❌ Error fetching ${niche}:`, error);
+            failCount++;
         }
+    }
+    
+    nicheSearchData = newNicheData;
+    lastNicheSearchTime = Date.now();
+    
+    localStorage.setItem('nicheSearchData', JSON.stringify(nicheSearchData));
+    localStorage.setItem('lastNicheSearchTime', lastNicheSearchTime.toString());
+    
+    console.log(`\n📊 === NICHE DATA COLLECTION COMPLETE ===`);
+    console.log(`✅ Success: ${successCount} niches`);
+    console.log(`❌ Failed: ${failCount} niches`);
+    console.log(`📹 Total videos: ${totalVideosCollected}`);
+    console.log(`📈 Avg per niche: ${Math.round(totalVideosCollected / successCount)} videos`);
+    console.log(`🔧 Total API calls: ${totalApiCalls}`);
+    console.log(`=======================================\n`);
+}
 const categoryKeywords = {
     'Tutorial': ['tutorial', 'howto', 'guide', 'learn', 'explained', 'tips', 'beginner'],
     'Commentary': ['react', 'reaction', 'review', 'explained', 'breakdown', 'analysis', 'commentary'],
@@ -1393,132 +1911,242 @@ function createKeywordsChart() {
     });
 }
         function displayNiches() {
-            if (allLogs.length === 0) {
-                showEmptyState('No data yet. Data will populate as trends are collected.');
-                return;
-            }
+    if (allLogs.length === 0) {
+        showEmptyState('No data yet. Data will populate as trends are collected.');
+        return;
+    }
 
-            const niches = analyzeBeginnerNiches();
-            
-            const html = `
-                <div class="stats-grid" style="margin-bottom: 24px;">
-                    <div class="stat-card">
-                        <div class="stat-value">${niches.length}</div>
-                        <div class="stat-label">Beginner Niches</div>
+    const niches = analyzeBeginnerNiches();
+    
+    const html = `
+        <div class="stats-grid" style="margin-bottom: 24px;">
+            <div class="stat-card">
+                <div class="stat-value">${niches.length}</div>
+                <div class="stat-label">Niches Analyzed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${niches.filter(n => n.isBeginnerFriendly).length}</div>
+                <div class="stat-label">Beginner Friendly</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${niches.filter(n => n.successChance >= 70).length}</div>
+                <div class="stat-label">High Success Rate (70%+)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${niches.filter(n => n.growth.includes('Rising') || n.growth.includes('Exploding')).length}</div>
+                <div class="stat-label">Growing Fast</div>
+            </div>
+        </div>
+
+        <div style="background: #065fd4; padding: 16px; border-radius: 8px; margin-bottom: 20px; color: white;">
+            <strong>💡 Success Metrics Explained:</strong> Each niche now shows <strong>Growth Rate</strong> (how fast it's growing), <strong>Success Chance</strong> (your probability of success as a beginner), and <strong>Monthly Earnings Potential</strong>. Niches are ranked by beginner-friendliness!
+        </div>
+
+        ${niches.map((niche, idx) => `
+            <div class="niche-card" id="niche-${idx}">
+                <div class="niche-header" onclick="event.stopPropagation(); toggleNicheExpand(${idx}, event);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="niche-title">${niche.name}</div>
+                        ${niche.isBeginnerFriendly ? '<span class="beginner-badge">BEST FOR BEGINNERS</span>' : ''}
+                        ${niche.successChance >= 70 ? '<span class="beginner-badge" style="background: #4caf50;">HIGH SUCCESS</span>' : ''}
+                        ${niche.growth.includes('Exploding') ? '<span class="beginner-badge" style="background: #ff9800;">🚀 EXPLODING</span>' : ''}
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${niches.filter(n => n.isBeginnerFriendly).length}</div>
-                        <div class="stat-label">Highly Recommended</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${niches.filter(n => n.competition === 'Low').length}</div>
-                        <div class="stat-label">Low Competition</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${niches.filter(n => n.growth.includes('Rising')).length}</div>
-                        <div class="stat-label">Rising Trends</div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="niche-score ${niche.beginnerScore >= 80 ? 'high' : niche.beginnerScore >= 60 ? 'medium' : 'low'}">
+                            ${niche.beginnerScore}/100
+                        </div>
+                        <span class="expand-icon">▼</span>
                     </div>
                 </div>
 
-                <div style="background: #065fd4; padding: 16px; border-radius: 8px; margin-bottom: 20px; color: white;">
-                    <strong>💡 Beginner Guide:</strong> These niches are selected based on low competition, good potential views, and ease of content creation. Click each niche to see detailed strategies!
+                <div class="niche-description" onclick="event.stopPropagation(); toggleNicheExpand(${idx}, event);">
+                    ${niche.description}
                 </div>
 
-                ${niches.map((niche, idx) => `
-                    <div class="niche-card" id="niche-${idx}">
-                        <div class="niche-header" onclick="event.stopPropagation(); toggleNicheExpand(${idx}, event);">
-                            <div style="display: flex; align-items: center;">
-                                <div class="niche-title">${niche.name}</div>
-                                ${niche.isBeginnerFriendly ? '<span class="beginner-badge">BEST FOR BEGINNERS</span>' : ''}
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div class="niche-score ${niche.score >= 80 ? 'high' : niche.score >= 60 ? 'medium' : 'low'}">
-                                    ${niche.score}/100
-                                </div>
-                                <span class="expand-icon">▼</span>
+                <div class="niche-content" onclick="event.stopPropagation();">
+                    
+                    <!-- SUCCESS METRICS BOX -->
+                    <div style="background: linear-gradient(135deg, #1a4d1a, #0a3d0a); padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 2px solid #4caf50;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div style="color: #4caf50; font-weight: 700; font-size: 16px;">📊 Success Metrics</div>
+                            <div style="background: #4caf50; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 18px;">
+                                ${niche.successChance}% Success Rate
                             </div>
                         </div>
-
-                        <div class="niche-description" onclick="event.stopPropagation(); toggleNicheExpand(${idx}, event);">
-                            ${niche.description}
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                            <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;">
+                                <div style="color: #aaa; font-size: 11px; margin-bottom: 4px;">GROWTH TREND</div>
+                                <div style="color: #fff; font-size: 20px; font-weight: 600;">${niche.growth}</div>
+                                <div style="color: #4caf50; font-size: 13px; margin-top: 4px;">
+                                    ${parseFloat(niche.growthRate) > 0 ? '+' : ''}${niche.growthRate}% growth
+                                </div>
+                            </div>
+                            
+                            <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;">
+                                <div style="color: #aaa; font-size: 11px; margin-bottom: 4px;">COMPETITION</div>
+                                <div style="color: #fff; font-size: 20px; font-weight: 600;">${niche.competition}</div>
+                                <div style="color: #aaa; font-size: 13px; margin-top: 4px;">
+                                    ${niche.channelDiversity}% channel diversity
+                                </div>
+                            </div>
+                            
+                            <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;">
+                                <div style="color: #aaa; font-size: 11px; margin-bottom: 4px;">MONTHLY POTENTIAL</div>
+                                <div style="color: #fff; font-size: 20px; font-weight: 600;">${formatNumber(niche.monthlyViewsPotential)}</div>
+                                <div style="color: #aaa; font-size: 13px; margin-top: 4px;">
+                                    views/month (8 videos)
+                                </div>
+                            </div>
+                            
+                            <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;">
+                                <div style="color: #aaa; font-size: 11px; margin-bottom: 4px;">EST. EARNINGS</div>
+                                <div style="color: #4caf50; font-size: 20px; font-weight: 600;">$${niche.estimatedEarnings.low}-$${niche.estimatedEarnings.high}</div>
+                                <div style="color: #aaa; font-size: 13px; margin-top: 4px;">
+                                    per month (realistic)
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="niche-content" onclick="event.stopPropagation();">
-                            <div class="niche-stats">
-                                <div class="niche-stat-item">
-                                    <div class="niche-stat-value">${formatNumber(niche.avgViews)}</div>
-                                    <div class="niche-stat-label">Avg Views</div>
-                                </div>
-                                <div class="niche-stat-item">
-                                    <div class="niche-stat-value">${niche.videoCount || 0}</div>
-                                    <div class="niche-stat-label">Videos Analyzed</div>
-                                </div>
-                                <div class="niche-stat-item">
-                                    <div class="niche-stat-value">${niche.competition}</div>
-                                    <div class="niche-stat-label">Competition</div>
-                                </div>
-                                <div class="niche-stat-item">
-                                    <div class="niche-stat-value">${((niche.engagementRate || 0) * 100).toFixed(1)}%</div>
-                                    <div class="niche-stat-label">Engagement</div>
-                                </div>
-                                <div class="niche-stat-item">
-                                    <div class="niche-stat-value">${niche.growth}</div>
-                                    <div class="niche-stat-label">Growth Trend</div>
-                                </div>
-                            </div>
-
-                            <div class="niche-keywords">
-                                <div class="niche-keywords-title">Related Keywords:</div>
-                                ${niche.keywords.map(kw => `<span class="keyword-tag">${kw}</span>`).join('')}
-                            </div>
-
-                            ${niche.isBeginnerFriendly ? `
-                            <div style="background: #0a3d0a; padding: 16px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #4caf50;">
-                                <div style="color: #4caf50; font-weight: 600; margin-bottom: 8px;">✨ Why This is Great for Beginners:</div>
-                                <div style="color: #ccc; font-size: 13px;">
-                                    ${niche.beginnerReason}
-                                </div>
-                            </div>
-                            ` : ''}
-
-                            <div style="background: #1a1a3a; padding: 16px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #065fd4;">
-                                <div style="color: #065fd4; font-weight: 600; margin-bottom: 12px;">🔥 What's Working Right Now (Based on Current Trends):</div>
-                                ${niche.workingStrategies.map(strategy => `
-                                    <div style="background: #0a0a0a; padding: 12px; border-radius: 4px; margin-bottom: 8px;">
-                                        <div style="color: #fff; font-weight: 500; margin-bottom: 6px; font-size: 14px;">
-                                            ${strategy.title}
-                                        </div>
-                                        <div style="color: #aaa; font-size: 13px; line-height: 1.5;">
-                                            ${strategy.description}
-                                        </div>
-                                        <div style="color: #888; font-size: 12px; margin-top: 6px; font-style: italic;">
-                                            📊 ${strategy.evidence}
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-
-                            <div class="growth-tips">
-                                <div class="tips-title">💡 Growth Strategy for ${niche.name}:</div>
-                                ${niche.tips.map(tip => `<div class="tip-item">${tip}</div>`).join('')}
-                            </div>
-
-                            <div style="background: #0a0a0a; padding: 16px; border-radius: 6px; margin-top: 12px;">
-                                <div style="color: #065fd4; font-weight: 600; margin-bottom: 8px;">🎬 Content Ideas:</div>
-                                ${niche.contentIdeas.map(idea => `
-                                    <div style="color: #aaa; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #222;">
-                                        • ${idea}
-                                    </div>
-                                `).join('')}
+                        
+                        <div style="margin-top: 16px; padding: 12px; background: rgba(76, 175, 80, 0.1); border-radius: 6px; border-left: 3px solid #4caf50;">
+                            <div style="color: #4caf50; font-weight: 600; font-size: 13px; margin-bottom: 6px;">💡 What This Means:</div>
+                            <div style="color: #ccc; font-size: 13px; line-height: 1.6;">
+                                ${getSuccessInterpretation(niche)}
                             </div>
                         </div>
                     </div>
-                `).join('')}
-            `;
-            
-            document.getElementById('content').innerHTML = html;
-        }
 
+                    <!-- STANDARD STATS -->
+                    <div class="niche-stats">
+                        <div class="niche-stat-item">
+                            <div class="niche-stat-value">${formatNumber(niche.avgViews)}</div>
+                            <div class="niche-stat-label">Avg Views</div>
+                        </div>
+                        <div class="niche-stat-item">
+                            <div class="niche-stat-value">${niche.videoCount || 0}</div>
+                            <div class="niche-stat-label">Videos Analyzed</div>
+                        </div>
+                        <div class="niche-stat-item">
+                            <div class="niche-stat-value">${((niche.engagementRate || 0) * 100).toFixed(1)}%</div>
+                            <div class="niche-stat-label">Engagement</div>
+                        </div>
+                        <div class="niche-stat-item">
+                            <div class="niche-stat-value">${formatNumber(niche.avgComments)}</div>
+                            <div class="niche-stat-label">Avg Comments</div>
+                        </div>
+                    </div>
+
+                    <div class="niche-keywords">
+                        <div class="niche-keywords-title">Related Keywords:</div>
+                        ${niche.keywords.map(kw => `<span class="keyword-tag">${kw}</span>`).join('')}
+                    </div>
+
+                    ${niche.isBeginnerFriendly ? `
+                    <div style="background: #0a3d0a; padding: 16px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #4caf50;">
+                        <div style="color: #4caf50; font-weight: 600; margin-bottom: 8px;">✨ Why This is Great for Beginners:</div>
+                        <div style="color: #ccc; font-size: 13px;">
+                            ${niche.beginnerReason}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div style="background: #1a1a3a; padding: 16px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #065fd4;">
+                        <div style="color: #065fd4; font-weight: 600; margin-bottom: 12px;">🔥 What's Working Right Now (Based on Current Trends):</div>
+                        ${niche.workingStrategies.map(strategy => `
+                            <div style="background: #0a0a0a; padding: 12px; border-radius: 4px; margin-bottom: 8px;">
+                                <div style="color: #fff; font-weight: 500; margin-bottom: 6px; font-size: 14px;">
+                                    ${strategy.title}
+                                </div>
+                                <div style="color: #aaa; font-size: 13px; line-height: 1.5;">
+                                    ${strategy.description}
+                                </div>
+                                <div style="color: #888; font-size: 12px; margin-top: 6px; font-style: italic;">
+                                    📊 ${strategy.evidence}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="growth-tips">
+                        <div class="tips-title">💡 Growth Strategy for ${niche.name}:</div>
+                        ${niche.tips.map(tip => `<div class="tip-item">${tip}</div>`).join('')}
+                    </div>
+
+                    <div style="background: #0a0a0a; padding: 16px; border-radius: 6px; margin-top: 12px;">
+                        <div style="color: #065fd4; font-weight: 600; margin-bottom: 8px;">🎬 Content Ideas:</div>
+                        ${niche.contentIdeas.map(idea => `
+                            <div style="color: #aaa; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #222;">
+                                • ${idea}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('')}
+    `;
+    
+    document.getElementById('content').innerHTML = html;
+}
+
+function getSuccessInterpretation(niche) {
+    const chance = niche.successChance;
+    const growth = niche.growth;
+    const comp = niche.competition;
+    
+    let interpretation = '';
+    
+    // Success chance interpretation
+    if (chance >= 80) {
+        interpretation += `With an <strong>${chance}% success rate</strong>, this is an <strong>excellent choice for beginners</strong>. `;
+    } else if (chance >= 70) {
+        interpretation += `A <strong>${chance}% success rate</strong> means <strong>very good odds</strong> for beginners with consistent effort. `;
+    } else if (chance >= 60) {
+        interpretation += `At ${chance}% success rate, this is <strong>achievable for dedicated beginners</strong>. `;
+    } else if (chance >= 50) {
+        interpretation += `${chance}% success rate means moderate difficulty - <strong>requires quality content and patience</strong>. `;
+    } else {
+        interpretation += `${chance}% success rate indicates higher difficulty - <strong>best for creators with some experience</strong>. `;
+    }
+    
+    // Growth trend interpretation
+    if (growth.includes('Exploding')) {
+        interpretation += `The niche is <strong>exploding right now</strong> (${niche.growthRate}% growth) - perfect timing to jump in! `;
+    } else if (growth.includes('Rising')) {
+        interpretation += `It's <strong>growing steadily</strong> (${niche.growthRate}% growth) - good momentum for new creators. `;
+    } else if (growth.includes('Growing')) {
+        interpretation += `Showing <strong>positive growth</strong> (${niche.growthRate}% growth) - stable opportunity. `;
+    } else if (growth.includes('Stable')) {
+        interpretation += `The market is <strong>stable</strong> - consistent but requires differentiation. `;
+    } else if (growth.includes('Slowing')) {
+        interpretation += `Growth is slowing (${niche.growthRate}%) - consider a fresh angle. `;
+    } else {
+        interpretation += `Interest is declining (${niche.growthRate}%) - challenging but not impossible. `;
+    }
+    
+    // Competition interpretation
+    if (comp === 'Very Low') {
+        interpretation += `<strong>Very low competition</strong> means easier to rank and get discovered.`;
+    } else if (comp === 'Low') {
+        interpretation += `<strong>Low competition</strong> gives you room to establish yourself.`;
+    } else if (comp === 'Medium') {
+        interpretation += `<strong>Medium competition</strong> - focus on quality and unique angles.`;
+    } else if (comp === 'High') {
+        interpretation += `<strong>High competition</strong> - need exceptional quality to stand out.`;
+    } else {
+        interpretation += `<strong>Very high competition</strong> - requires premium content and patience.`;
+    }
+    
+    // Earnings context
+    if (niche.estimatedEarnings.mid >= 500) {
+        interpretation += ` With potential earnings of <strong>$${niche.estimatedEarnings.low}-$${niche.estimatedEarnings.high}/month</strong>, this could become a solid income stream.`;
+    } else if (niche.estimatedEarnings.mid >= 200) {
+        interpretation += ` Potential earnings of <strong>$${niche.estimatedEarnings.low}-$${niche.estimatedEarnings.high}/month</strong> make this a viable side income.`;
+    } else {
+        interpretation += ` Start here to build experience, with potential to grow to <strong>$${niche.estimatedEarnings.low}-$${niche.estimatedEarnings.high}/month</strong>.`;
+    }
+    
+    return interpretation;
+}
         function toggleNicheExpand(idx, event) {
             if (event) {
                 event.stopPropagation();
@@ -1531,961 +2159,571 @@ function createKeywordsChart() {
         }
 
         function analyzeBeginnerNiches() {
-            // Separate analysis specifically for beginner-friendly niches
-            const beginnerNicheCategories = {
-                'tutorial': {
-                    keywords: ['tutorial', 'howto', 'guide', 'learn', 'explained', 'tips', 'beginner'],
-                    description: 'Tutorial content is perfect for beginners - you can teach what you know without expensive equipment.',
-                    beginnerReason: 'Low barrier to entry, screen recording software is free, and there\'s always demand for learning content. You can start with topics you already know.',
-                    contentIdeas: [
-                        'Software tutorials (free tools like Canva, GIMP, DaVinci Resolve)',
-                        'Productivity tips and life hacks',
-                        'Study techniques and note-taking methods',
-                        'Language learning tips',
-                        'How to use popular apps and websites'
-                    ]
-                },
-                'commentary': {
-                    keywords: ['react', 'reaction', 'review', 'explained', 'breakdown', 'analysis', 'commentary'],
-                    description: 'Commentary and reaction content requires minimal equipment - just your voice and existing content to discuss.',
-                    beginnerReason: 'No special equipment needed, you can record on your phone. Commentary on trending topics gets immediate views.',
-                    contentIdeas: [
-                        'React to viral videos (within fair use)',
-                        'News commentary and analysis',
-                        'Product reviews (things you already own)',
-                        'Movie/show breakdowns and theories',
-                        'Social media trend analysis'
-                    ]
-                },
-                'lists': {
-                    keywords: ['best', 'worst', 'list', 'ranking', 'facts', 'things', 'countdown'],
-                    description: 'List-based content is easy to research and structure, perfect for starting out.',
-                    beginnerReason: 'Simple format that\'s easy to script. Can use free stock footage and images. Highly searchable titles.',
-                    contentIdeas: [
-                        'Top 10 free tools for X',
-                        'Best budget products under $50',
-                        'Interesting facts about [topic]',
-                        'Things you didn\'t know about [popular subject]',
-                        'Comparing popular products'
-                    ]
-                },
-                'podcast': {
-                    keywords: ['podcast', 'interview', 'talk', 'discussion', 'conversation', 'story'],
-                    description: 'Podcast-style content only needs a microphone and interesting conversations.',
-                    beginnerReason: 'Audio-focused so production is simpler. Can collaborate with others remotely. Natural speaking style is encouraged.',
-                    contentIdeas: [
-                        'Interview interesting people in your field',
-                        'Discuss current events with co-hosts',
-                        'Story-time and personal experiences',
-                        'Book/movie/game discussions',
-                        'Answer audience questions'
-                    ]
-                },
-                'gaming': {
-                    keywords: ['game', 'gaming', 'gameplay', 'playthrough', 'walkthrough', 'lets'],
-                    description: 'Gaming content is beginner-friendly if you focus on popular free games.',
-                    beginnerReason: 'Free games available, built-in audience, OBS Studio is free for recording, and viewers enjoy personality over production quality.',
-                    contentIdeas: [
-                        'Free-to-play game tutorials (Fortnite, Roblox, Valorant)',
-                        'Mobile game playthroughs',
-                        'Game tips and strategies',
-                        'Funny moments compilations',
-                        'Beginner guides for popular games'
-                    ]
-                },
-                'animation': {
-                    keywords: ['animation', 'animated', 'story', 'cartoon', 'storytime', 'animatic'],
-                    description: 'Simple animation and storytime content can be created with free tools.',
-                    beginnerReason: 'Free tools like Krita and Blender available. Simple style animations are popular. Can outsource animation later once profitable.',
-                    contentIdeas: [
-                        'Animated storytimes (personal experiences)',
-                        'Simple educational animations',
-                        'Animated jokes and comedy skits',
-                        'Stick figure animations (very popular)',
-                        'Whiteboard animation explanations'
-                    ]
-                },
-                'documentary': {
-                    keywords: ['documentary', 'history', 'mystery', 'investigation', 'deep', 'case', 'story'],
-                    description: 'Documentary-style content using research and stock footage is growing rapidly.',
-                    beginnerReason: 'Research-based content, use free stock footage and images, voiceover-focused so no need to show face.',
-                    contentIdeas: [
-                        'Historical events explained',
-                        'True crime cases (solved/old cases only)',
-                        'Unsolved mysteries',
-                        'Internet mysteries and deep dives',
-                        'Company/brand history documentaries'
-                    ]
-                },
-                'lifestyle': {
-                    keywords: ['vlog', 'daily', 'routine', 'life', 'day', 'morning', 'night'],
-                    description: 'Lifestyle vlogs are authentic and require minimal editing skills.',
-                    beginnerReason: 'Just film your daily life with a phone camera. Authenticity matters more than production value. Easy to stay consistent.',
-                    contentIdeas: [
-                        'Day in the life vlogs',
-                        'Morning/night routines',
-                        'What I eat in a day',
-                        'Productivity and time management',
-                        'Student life / work life vlogs'
-                    ]
-                },
-                'cooking': {
-                    keywords: ['cooking', 'recipe', 'food', 'baking', 'meal', 'cook', 'kitchen'],
-                    description: 'Cooking content is highly engaging and can be filmed with just a phone.',
-                    beginnerReason: 'Everyone eats, so universal appeal. Just need a phone camera and kitchen. Recipe videos are highly searchable.',
-                    contentIdeas: [
-                        'Quick 5-minute recipes',
-                        'Budget meal prep for the week',
-                        'Cooking basics for beginners',
-                        'One-pot meals and easy dinners',
-                        'Baking simple desserts'
-                    ]
-                },
-                'tech review': {
-                    keywords: ['tech', 'review', 'unboxing', 'phone', 'gadget', 'device', 'iphone', 'android'],
-                    description: 'Tech reviews attract engaged audiences researching purchases.',
-                    beginnerReason: 'Review products you already own. Viewers appreciate honest opinions over fancy production. Can build to affiliate income.',
-                    contentIdeas: [
-                        'Budget tech under $100',
-                        'Phone/laptop comparisons',
-                        'Honest review of popular gadgets',
-                        'Tech tips and hidden features',
-                        'Is it worth it? Product reviews'
-                    ]
-                },
-                'fitness': {
-                    keywords: ['workout', 'fitness', 'exercise', 'training', 'gym', 'health', 'muscle'],
-                    description: 'Fitness content inspires and helps people achieve their health goals.',
-                    beginnerReason: 'Film workouts at home with phone. No gym needed. Viewers love following along. Personal transformation is compelling.',
-                    contentIdeas: [
-                        'Home workouts (no equipment needed)',
-                        'Beginner fitness routines',
-                        'Follow-along workout videos',
-                        'Fitness transformation journey',
-                        'Quick 10-minute exercises'
-                    ]
-                },
-                'educational': {
-                    keywords: ['science', 'math', 'education', 'school', 'study', 'lesson', 'teach'],
-                    description: 'Educational content has dedicated audiences seeking to learn new things.',
-                    beginnerReason: 'Share knowledge you already have. Students always need help. Can use simple whiteboard or screen recording.',
-                    contentIdeas: [
-                        'Science experiments at home',
-                        'Math problem walkthroughs',
-                        'Study tips and exam strategies',
-                        'Explaining complex concepts simply',
-                        'Educational fun facts'
-                    ]
-                },
-                'comedy': {
-                    keywords: ['funny', 'comedy', 'humor', 'laugh', 'joke', 'prank', 'meme'],
-                    description: 'Comedy content is highly shareable and can go viral quickly.',
-                    beginnerReason: 'Just need creativity and personality. Skits can be filmed anywhere. Comedy shorts blow up on YouTube Shorts.',
-                    contentIdeas: [
-                        'Relatable comedy skits',
-                        'Observational humor about daily life',
-                        'Character impressions',
-                        'Parody videos',
-                        'Comedy shorts and memes'
-                    ]
-                },
-                'personal finance': {
-                    keywords: ['money', 'finance', 'budget', 'saving', 'invest', 'debt', 'income'],
-                    description: 'Finance content attracts viewers wanting to improve their money situation.',
-                    beginnerReason: 'Share your money journey. Screen record budgeting apps. High value content with loyal audiences.',
-                    contentIdeas: [
-                        'How I budget and save money',
-                        'Paying off debt journey',
-                        'Beginner investing explained',
-                        'Side hustle ideas',
-                        'Living on a budget tips'
-                    ]
-                },
-                'music covers': {
-                    keywords: ['cover', 'music', 'song', 'singing', 'acoustic', 'piano', 'guitar'],
-                    description: 'Music covers tap into existing fanbases and showcase talent.',
-                    beginnerReason: 'Use instruments you already play. Built-in search traffic from song names. Phone recording quality is acceptable.',
-                    contentIdeas: [
-                        'Acoustic covers of popular songs',
-                        'Mashups and medleys',
-                        'Piano/guitar tutorials of hits',
-                        'Singing covers with simple setup',
-                        'Your unique take on trending songs'
-                    ]
-                },
-                'asmr': {
-                    keywords: ['asmr', 'relaxing', 'sleep', 'whisper', 'sound', 'tingles', 'calm'],
-                    description: 'ASMR content helps people relax and has a dedicated following.',
-                    beginnerReason: 'Just need a decent microphone. Simple, repetitive content. Loyal niche audience. Can film in any quiet space.',
-                    contentIdeas: [
-                        'Tapping and scratching sounds',
-                        'Whispered storytelling',
-                        'Roleplay scenarios (spa, haircut)',
-                        'Nature sounds and ambiance',
-                        'Study/work ambiance videos'
-                    ]
-                },
-                'productivity': {
-                    keywords: ['productivity', 'organized', 'planner', 'notion', 'journal', 'routine', 'efficient'],
-                    description: 'Productivity content helps viewers optimize their time and life.',
-                    beginnerReason: 'Share your actual systems. Screen record your setup. Highly searchable. Audience eager to improve.',
-                    contentIdeas: [
-                        'My productivity system explained',
-                        'Notion/productivity app tutorials',
-                        'Time management techniques',
-                        'Digital planning and organization',
-                        'Productivity tool reviews'
-                    ]
-                },
-                'book reviews': {
-                    keywords: ['book', 'reading', 'review', 'novel', 'literature', 'author', 'bookshelf'],
-                    description: 'Book content connects with passionate readers seeking recommendations.',
-                    beginnerReason: 'Talk about books you\'ve read. Simple talking head format. Engaged, loyal community. Easy to be consistent.',
-                    contentIdeas: [
-                        'Book reviews and recommendations',
-                        'Reading vlogs and book hauls',
-                        'Best books I read this month',
-                        'Book vs movie comparisons',
-                        'Reading challenges and TBR'
-                    ]
-                },
-                'art': {
-                    keywords: ['art', 'drawing', 'painting', 'sketch', 'artist', 'illustration', 'creative'],
-                    description: 'Art content showcases creative process and inspires others.',
-                    beginnerReason: 'Film your actual art process. Viewers love watching creation. Time-lapse videos are simple to make.',
-                    contentIdeas: [
-                        'Speed drawing time-lapses',
-                        'Art tutorial basics',
-                        'Digital art process videos',
-                        'Sketching challenges',
-                        'Art supply reviews'
-                    ]
-                },
-                'travel': {
-                    keywords: ['travel', 'trip', 'vacation', 'destination', 'adventure', 'tourist', 'explore'],
-                    description: 'Travel content takes viewers to new places and provides trip ideas.',
-                    beginnerReason: 'Film travels on your phone. Even local trips work. Viewers love living vicariously. Simple vlog style.',
-                    contentIdeas: [
-                        'Budget travel guides',
-                        'Hidden gems in your city',
-                        'Weekend trip vlogs',
-                        'Travel tips and hacks',
-                        'Food tours and local experiences'
-                    ]
-                },
-                'photography': {
-                    keywords: ['photo', 'photography', 'camera', 'lens', 'portrait', 'shot', 'photographer'],
-                    description: 'Photography content teaches camera techniques and visual storytelling.',
-                    beginnerReason: 'Start with phone photography. Free editing apps like Snapseed. Visual content is engaging and shareable.',
-                    contentIdeas: [
-                        'Phone photography tips',
-                        'Beginner camera settings',
-                        'Free photo editing tutorials',
-                        'Composition techniques',
-                        'Before and after edits'
-                    ]
-                },
-                'pets': {
-                    keywords: ['dog', 'cat', 'pet', 'puppy', 'kitten', 'animal', 'cute'],
-                    description: 'Pet content is universally loved and easy to film with animals you already have.',
-                    beginnerReason: 'Film your own pets. Cute animal content always performs well. Simple editing needed. Huge built-in audience.',
-                    contentIdeas: [
-                        'Funny pet moments compilation',
-                        'Pet care tips and advice',
-                        'Training your dog/cat',
-                        'Day in the life of my pet',
-                        'Pet product reviews'
-                    ]
-                },
-                'diy crafts': {
-                    keywords: ['diy', 'craft', 'handmade', 'make', 'create', 'project', 'build'],
-                    description: 'DIY and craft content shows creative projects viewers can replicate.',
-                    beginnerReason: 'Use materials around the house. Phone filming is fine. Satisfying to watch. Step-by-step format is simple.',
-                    contentIdeas: [
-                        'Easy DIY room decor',
-                        '5-minute craft projects',
-                        'Upcycling old items',
-                        'DIY gifts on a budget',
-                        'Beginner crafting tutorials'
-                    ]
-                },
-                'fashion': {
-                    keywords: ['fashion', 'outfit', 'style', 'clothing', 'wear', 'dress', 'trend'],
-                    description: 'Fashion content showcases style and helps viewers with outfit inspiration.',
-                    beginnerReason: 'Film yourself in different outfits. No special equipment. Can thrift or use existing wardrobe. Relatable content.',
-                    contentIdeas: [
-                        'Outfit of the week',
-                        'Thrift store haul and styling',
-                        'Budget fashion finds',
-                        'How to style one piece 5 ways',
-                        'Fashion trends explained'
-                    ]
-                },
-                'beauty': {
-                    keywords: ['makeup', 'beauty', 'skincare', 'cosmetic', 'routine', 'skin', 'hair'],
-                    description: 'Beauty content covers makeup, skincare, and personal care routines.',
-                    beginnerReason: 'Use products you already own. Ring light is affordable. Highly searchable. Great for affiliate marketing later.',
-                    contentIdeas: [
-                        'Everyday makeup routine',
-                        'Drugstore beauty favorites',
-                        'Skincare routine for beginners',
-                        'Affordable beauty dupes',
-                        'Get ready with me videos'
-                    ]
-                },
-                'motivation': {
-                    keywords: ['motivation', 'inspire', 'success', 'mindset', 'goals', 'hustle', 'growth'],
-                    description: 'Motivational content inspires viewers to improve their lives.',
-                    beginnerReason: 'Share your journey and lessons. Simple talking head format. Viewers love authentic stories. Easy to script.',
-                    contentIdeas: [
-                        'My journey and lessons learned',
-                        'Daily motivation and affirmations',
-                        'How I changed my mindset',
-                        'Goal setting strategies',
-                        'Overcoming challenges story'
-                    ]
-                },
-                'minimalism': {
-                    keywords: ['minimalism', 'declutter', 'organize', 'simple', 'minimal', 'less', 'organize'],
-                    description: 'Minimalism content helps people simplify and organize their lives.',
-                    beginnerReason: 'Film your own decluttering process. Before/after is satisfying. Growing trend. Simple filming setup.',
-                    contentIdeas: [
-                        'Decluttering my room',
-                        'Minimalist lifestyle tips',
-                        'Organize with me videos',
-                        'What I got rid of and why',
-                        'Living with less journey'
-                    ]
-                },
-                'language learning': {
-                    keywords: ['language', 'learn', 'spanish', 'french', 'english', 'speaking', 'fluent'],
-                    description: 'Language learning content teaches new languages or study methods.',
-                    beginnerReason: 'Teach a language you know. Whiteboard or screen record. Students always searching for free lessons.',
-                    contentIdeas: [
-                        'Learn [language] for beginners',
-                        'Common phrases in [language]',
-                        'My language learning journey',
-                        'Tips to become fluent',
-                        'Practice conversations'
-                    ]
-                },
-                'plant care': {
-                    keywords: ['plant', 'garden', 'houseplant', 'grow', 'succulent', 'green', 'propagate'],
-                    description: 'Plant care content guides viewers in growing and maintaining plants.',
-                    beginnerReason: 'Film your own plants. Peaceful, satisfying content. Growing niche. Time-lapses are easy with phone.',
-                    contentIdeas: [
-                        'Beginner houseplants guide',
-                        'How to propagate plants',
-                        'Plant care mistakes to avoid',
-                        'My plant collection tour',
-                        'Grow plants from scraps'
-                    ]
-                },
-                'meditation': {
-                    keywords: ['meditation', 'mindfulness', 'calm', 'peaceful', 'relax', 'breathe', 'zen'],
-                    description: 'Meditation content helps viewers find calm and practice mindfulness.',
-                    beginnerReason: 'Record calming voiceovers. Use free nature footage. Growing wellness trend. Simple production.',
-                    contentIdeas: [
-                        'Guided meditation for beginners',
-                        '10-minute morning meditation',
-                        'Meditation for sleep',
-                        'Breathing exercises',
-                        'Mindfulness practices'
-                    ]
-                },
-                'car reviews': {
-                    keywords: ['car', 'vehicle', 'automotive', 'drive', 'test', 'review', 'auto'],
-                    description: 'Car content reviews vehicles and provides automotive advice.',
-                    beginnerReason: 'Review your own car or test drives. Phone camera works. Car enthusiasts are engaged viewers.',
-                    contentIdeas: [
-                        'My car review and experience',
-                        'Budget car maintenance tips',
-                        'Car features explained',
-                        'Best first cars to buy',
-                        'DIY car care'
-                    ]
-                },
-                'real estate': {
-                    keywords: ['house', 'home', 'apartment', 'real estate', 'property', 'tour', 'living'],
-                    description: 'Real estate content shows property tours and home buying advice.',
-                    beginnerReason: 'Tour your own space or local listings. Aspirational content. Educational value. Simple walkthrough format.',
-                    contentIdeas: [
-                        'Apartment tour on a budget',
-                        'First time home buying tips',
-                        'Room makeover reveals',
-                        'Home organization ideas',
-                        'Rental vs buying explained'
-                    ]
-                },
-                'side hustle': {
-                    keywords: ['side hustle', 'earn', 'make money', 'online', 'passive', 'income', 'business'],
-                    description: 'Side hustle content shares ways to earn extra money online or offline.',
-                    beginnerReason: 'Share your actual experience. Screen recording is easy. High interest topic. Viewers seeking solutions.',
-                    contentIdeas: [
-                        'Side hustles I actually do',
-                        'How I make $X per month',
-                        'Passive income ideas',
-                        'Online businesses to start',
-                        'My side hustle journey'
-                    ]
-                },
-                'video editing': {
-                    keywords: ['editing', 'premiere', 'davinci', 'capcut', 'edit', 'effects', 'transition'],
-                    description: 'Video editing tutorials teach software and editing techniques.',
-                    beginnerReason: 'Teach what you already know. Screen recording is free. Editors always in demand. Meta content for YouTube.',
-                    contentIdeas: [
-                        'Free video editing for beginners',
-                        'CapCut tutorial basics',
-                        'Smooth transitions tutorial',
-                        'Color grading made simple',
-                        'Editing tricks for viral videos'
-                    ]
-                },
-                'thrifting': {
-                    keywords: ['thrift', 'thrifting', 'secondhand', 'vintage', 'haul', 'goodwill', 'resell'],
-                    description: 'Thrifting content shows secondhand shopping and reselling.',
-                    beginnerReason: 'Film shopping trips on phone. Before/after styling is engaging. Can make money reselling. Sustainable trend.',
-                    contentIdeas: [
-                        'Thrift store haul and try-on',
-                        'Best thrift finds ever',
-                        'How to thrift like a pro',
-                        'Reselling thrift items for profit',
-                        'Vintage clothing haul'
-                    ]
-                },
-                'minimalist tech': {
-                    keywords: ['minimal', 'setup', 'desk', 'workspace', 'gear', 'tech', 'simple'],
-                    description: 'Minimalist tech shows clean setups and essential gear.',
-                    beginnerReason: 'Film your own setup. Aesthetic content is popular. Can grow into sponsorships. Simple filming.',
-                    contentIdeas: [
-                        'My minimal desk setup tour',
-                        'Essential tech for productivity',
-                        'Budget desk setup under $500',
-                        'Cable management tips',
-                        'Work from home setup'
-                    ]
-                },
-                'self improvement': {
-                    keywords: ['self improvement', 'better', 'habits', 'discipline', 'change', 'transform', 'upgrade'],
-                    description: 'Self improvement content helps viewers become better versions of themselves.',
-                    beginnerReason: 'Share your personal journey. Talking head format. Relatable struggles. Evergreen content.',
-                    contentIdeas: [
-                        'Habits that changed my life',
-                        'How I became more disciplined',
-                        '30-day challenge results',
-                        'Self improvement book reviews',
-                        'Daily routine for success'
-                    ]
-                },
-                'cryptocurrency': {
-                    keywords: ['crypto', 'bitcoin', 'ethereum', 'blockchain', 'trading', 'nft', 'coin'],
-                    description: 'Cryptocurrency content explains digital assets and blockchain.',
-                    beginnerReason: 'Educational content in high demand. Screen recording wallets/charts. Disclaimer: not financial advice.',
-                    contentIdeas: [
-                        'Crypto for complete beginners',
-                        'How to buy your first Bitcoin',
-                        'Crypto news and updates',
-                        'Understanding blockchain simply',
-                        'My crypto portfolio (educational)'
-                    ]
-                },
-                'study with me': {
-                    keywords: ['study', 'studying', 'student', 'exam', 'college', 'school', 'notes'],
-                    description: 'Study content provides companionship and motivation for students.',
-                    beginnerReason: 'Film yourself studying. No talking needed. Students love study-with-me. Long videos = more watch time.',
-                    contentIdeas: [
-                        'Study with me - 2 hours',
-                        'Note-taking methods',
-                        'Exam preparation routine',
-                        'Study music and ambiance',
-                        'Productive study session'
-                    ]
-                },
-                'instagram growth': {
-                    keywords: ['instagram', 'insta', 'reels', 'followers', 'viral', 'algorithm', 'social'],
-                    description: 'Instagram growth content teaches social media strategy.',
-                    beginnerReason: 'Share what worked for you. Screen record your analytics. High demand topic. Meta content.',
-                    contentIdeas: [
-                        'How I gained X followers',
-                        'Instagram algorithm explained',
-                        'Making viral Reels',
-                        'Content creation tips',
-                        'Instagram mistakes to avoid'
-                    ]
-                },
-                'streaming': {
-                    keywords: ['stream', 'streaming', 'twitch', 'live', 'streamer', 'broadcast', 'chat'],
-                    description: 'Streaming content teaches live broadcasting and entertainer skills.',
-                    beginnerReason: 'Teach streaming setup. Screen recording is easy. Growing industry. Streamers need guidance.',
-                    contentIdeas: [
-                        'How to start streaming',
-                        'Best free streaming software',
-                        'Stream setup for beginners',
-                        'Growing your Twitch channel',
-                        'Streaming tips and tricks'
-                    ]
-                },
-                'journaling': {
-                    keywords: ['journal', 'journaling', 'diary', 'writing', 'planner', 'bullet', 'gratitude'],
-                    description: 'Journaling content shows creative planning and reflective practices.',
-                    beginnerReason: 'Film your journal pages. Aesthetic and satisfying. Growing wellness trend. Simple overhead camera.',
-                    contentIdeas: [
-                        'Bullet journal setup',
-                        'Journal with me sessions',
-                        'Gratitude journaling',
-                        'Creative journal spreads',
-                        'Journal prompts and ideas'
-                    ]
-                },
-                'coffee': {
-                    keywords: ['coffee', 'espresso', 'brew', 'cafe', 'latte', 'barista', 'beans'],
-                    description: 'Coffee content explores brewing methods and cafe culture.',
-                    beginnerReason: 'Film making coffee at home. Aesthetic content. Universal appeal. Simple process videos.',
-                    contentIdeas: [
-                        'Perfect coffee brewing guide',
-                        'Coffee recipes at home',
-                        'Cafe vlogs and reviews',
-                        'Budget coffee setup',
-                        'Latte art for beginners'
-                    ]
-                },
-                'resume': {
-                    keywords: ['resume', 'cv', 'job', 'career', 'interview', 'application', 'hire'],
-                    description: 'Career content helps job seekers with resumes and interviews.',
-                    beginnerReason: 'Share your experience. Screen share resume templates. Everyone needs job help. Evergreen content.',
-                    contentIdeas: [
-                        'Resume tips that get interviews',
-                        'How I got hired at X',
-                        'Interview questions and answers',
-                        'Career change advice',
-                        'LinkedIn optimization guide'
-                    ]
-                },
-                'budget': {
-                    keywords: ['budget', 'frugal', 'cheap', 'affordable', 'save', 'deal', 'discount'],
-                    description: 'Budget content helps viewers save money and find deals.',
-                    beginnerReason: 'Share money-saving tips. Relatable to most viewers. Screen record spreadsheets. Practical value.',
-                    contentIdeas: [
-                        'How I budget $X per month',
-                        'Extreme budget challenges',
-                        'Frugal living tips',
-                        'Best deals and discounts',
-                        'Living on minimum wage'
-                    ]
-                },
-                'college': {
-                    keywords: ['college', 'university', 'dorm', 'campus', 'major', 'degree', 'freshman'],
-                    description: 'College content guides students through university life.',
-                    beginnerReason: 'Share your college experience. Students searching for advice. Vlog style is natural. Relatable content.',
-                    contentIdeas: [
-                        'College move-in vlog',
-                        'Dorm room tour',
-                        'Day in the life at [college]',
-                        'Choosing your major advice',
-                        'College survival tips'
-                    ]
-                },
-                'phone setup': {
-                    keywords: ['phone', 'iphone', 'android', 'apps', 'setup', 'homescreen', 'widgets'],
-                    description: 'Phone setup content shows device customization and app recommendations.',
-                    beginnerReason: 'Screen record your phone. Easy tutorial format. Everyone has a phone. Aesthetic setups are popular.',
-                    contentIdeas: [
-                        'My iPhone setup and apps',
-                        'Aesthetic home screen tutorial',
-                        'Best free apps you need',
-                        'iOS tips and tricks',
-                        'Phone organization guide'
-                    ]
-                },
-                'skateboarding': {
-                    keywords: ['skateboard', 'skate', 'skating', 'trick', 'skater', 'board', 'ollie'],
-                    description: 'Skateboarding content shows tricks, progress, and skate culture.',
-                    beginnerReason: 'Film yourself skating. Action content is engaging. Passionate community. Phone camera or GoPro.',
-                    contentIdeas: [
-                        'Learning my first tricks',
-                        'Skateboarding for beginners',
-                        'Skate park sessions',
-                        'Trick tutorials',
-                        'Skate progression videos'
-                    ]
-                },
-                'mental health': {
-                    keywords: ['mental health', 'anxiety', 'depression', 'therapy', 'wellness', 'healing', 'coping'],
-                    description: 'Mental health content provides support and reduces stigma.',
-                    beginnerReason: 'Share your journey authentically. Important topic. Supportive community. Simple talking format.',
-                    contentIdeas: [
-                        'My mental health journey',
-                        'Coping with anxiety tips',
-                        'Therapy experience and advice',
-                        'Mental health check-in',
-                        'Self-care practices'
-                    ]
-                },
-                'watch collecting': {
-                    keywords: ['watch', 'watches', 'timepiece', 'luxury', 'collection', 'rolex', 'seiko'],
-                    description: 'Watch content showcases timepieces and horological knowledge.',
-                    beginnerReason: 'Review watches you own. Niche passionate audience. Can start with affordable watches. Close-up filming.',
-                    contentIdeas: [
-                        'My watch collection tour',
-                        'Budget watch recommendations',
-                        'Affordable vs luxury watches',
-                        'Watch review and unboxing',
-                        'How to choose first watch'
-                    ]
-                },
-                'running': {
-                    keywords: ['running', 'run', 'runner', 'marathon', 'jogging', 'race', 'training'],
-                    description: 'Running content follows training journeys and provides tips.',
-                    beginnerReason: 'Film your runs on phone. Track progress over time. Motivational content. Universal activity.',
-                    contentIdeas: [
-                        'Couch to 5K journey',
-                        'Running tips for beginners',
-                        'Training for my first race',
-                        'Running motivation',
-                        'My running routine'
-                    ]
-                },
-                'parenting': {
-                    keywords: ['parenting', 'mom', 'dad', 'kids', 'baby', 'toddler', 'family'],
-                    description: 'Parenting content shares family life and childcare advice.',
-                    beginnerReason: 'Film daily family moments. Relatable to other parents. Authentic beats perfect. Phone camera is fine.',
-                    contentIdeas: [
-                        'Day in the life with kids',
-                        'Parenting tips and hacks',
-                        'Honest parenting reality',
-                        'Baby milestones and updates',
-                        'Family routines and schedules'
-                    ]
-                },
-                'relationship': {
-                    keywords: ['relationship', 'dating', 'couple', 'boyfriend', 'girlfriend', 'marriage', 'love'],
-                    description: 'Relationship content shares advice and couple experiences.',
-                    beginnerReason: 'Share your relationship journey. Universally relatable. Simple vlog format. Q&A videos perform well.',
-                    contentIdeas: [
-                        'Relationship advice and tips',
-                        'Couple Q&A',
-                        'Our relationship story',
-                        'Healthy relationship habits',
-                        'Date ideas on a budget'
-                    ]
-                },
-                'cycling': {
-                    keywords: ['cycling', 'bike', 'bicycle', 'ride', 'biking', 'cyclist', 'mountain bike'],
-                    description: 'Cycling content shows rides, bike maintenance, and adventures.',
-                    beginnerReason: 'Mount camera on bike. Adventure content is engaging. Growing community. Beautiful scenery.',
-                    contentIdeas: [
-                        'Scenic bike ride POV',
-                        'Bike maintenance basics',
-                        'Cycling for beginners',
-                        'My cycling journey',
-                        'Best beginner bikes'
-                    ]
-                },
-                'sneakers': {
-                    keywords: ['sneakers', 'shoes', 'kicks', 'jordan', 'nike', 'yeezy', 'collection'],
-                    description: 'Sneaker content showcases shoe collections and releases.',
-                    beginnerReason: 'Review shoes you own. Sneakerhead community is engaged. Can start budget-friendly. Simple unboxing.',
-                    contentIdeas: [
-                        'My sneaker collection',
-                        'Budget sneaker pickups',
-                        'Sneaker cleaning tutorial',
-                        'New release reviews',
-                        'Best affordable sneakers'
-                    ]
-                },
-                'writing': {
-                    keywords: ['writing', 'writer', 'write', 'author', 'novel', 'story', 'creative writing'],
-                    description: 'Writing content helps aspiring authors and shares the creative process.',
-                    beginnerReason: 'Share your writing journey. Screen record your writing. Aesthetic write-with-me content. Supportive community.',
-                    contentIdeas: [
-                        'How I write my stories',
-                        'Writing tips for beginners',
-                        'My writing routine',
-                        'Overcoming writer\'s block',
-                        'Write with me sessions'
-                    ]
-                },
-                'budgeting apps': {
-                    keywords: ['budgeting app', 'ynab', 'mint', 'every dollar', 'expense', 'tracker', 'financial app'],
-                    description: 'Budgeting app content teaches money management tools.',
-                    beginnerReason: 'Screen record app tutorials. Helpful practical content. Can affiliate link later. Growing financial literacy trend.',
-                    contentIdeas: [
-                        'Best free budgeting apps',
-                        'How I use YNAB',
-                        'Budget app comparison',
-                        'Setting up your first budget',
-                        'Expense tracking tutorial'
-                    ]
-                },
-                'voice acting': {
-                    keywords: ['voice', 'voice acting', 'voiceover', 'voice over', 'narration', 'dubbing', 'impression'],
-                    description: 'Voice acting content showcases vocal talent and teaches techniques.',
-                    beginnerReason: 'Just need a decent microphone. Character voices are fun. Can work from home. Growing voiceover demand.',
-                    contentIdeas: [
-                        'Character voice impressions',
-                        'Voice acting tutorial',
-                        'Behind the scenes voiceover',
-                        'My voice acting journey',
-                        'How to get voice acting gigs'
-                    ]
-                },
-                'slow living': {
-                    keywords: ['slow living', 'peaceful', 'simple life', 'cottagecore', 'cozy', 'homestead', 'quiet'],
-                    description: 'Slow living content celebrates peaceful, intentional lifestyles.',
-                    beginnerReason: 'Film your daily peaceful moments. Aesthetic content. Growing counter-culture trend. Calming to watch.',
-                    contentIdeas: [
-                        'Slow morning routine',
-                        'Peaceful day in the life',
-                        'Embracing slow living',
-                        'Cozy vlog aesthetic',
-                        'Simple pleasures content'
-                    ]
-                },
-                'coding projects': {
-                    keywords: ['coding', 'programming', 'code', 'developer', 'project', 'build', 'software'],
-                    description: 'Coding content teaches programming and showcases projects.',
-                    beginnerReason: 'Screen record your coding. Tech skills in demand. Developers love learning. Can teach any language.',
-                    contentIdeas: [
-                        'Build a project from scratch',
-                        'Coding for beginners',
-                        'My coding journey',
-                        'Programming tutorial series',
-                        'Coding challenge solutions'
-                    ]
-                },
-                'van life': {
-                    keywords: ['van life', 'vanlife', 'camper', 'rv', 'nomad', 'mobile', 'living'],
-                    description: 'Van life content shows mobile living and travel adventures.',
-                    beginnerReason: 'Film your van conversion or travels. Aspirational content. Growing alternative lifestyle. Adventure appeal.',
-                    contentIdeas: [
-                        'Van tour and conversion',
-                        'Van life reality check',
-                        'Living in a van costs',
-                        'Van life travel vlogs',
-                        'Camper organization tips'
-                    ]
-                },
-                'urban exploring': {
-                    keywords: ['urban exploring', 'urbex', 'abandoned', 'exploration', 'explore', 'forgotten', 'hidden'],
-                    description: 'Urban exploration shows abandoned places and hidden locations.',
-                    beginnerReason: 'Mysterious content is engaging. Can be local. Adventure without travel. Safety first disclaimer needed.',
-                    contentIdeas: [
-                        'Abandoned place exploration',
-                        'Urban exploration safety',
-                        'Hidden spots in my city',
-                        'Exploring forgotten buildings',
-                        'Urbex photography tips'
-                    ]
-                },
-                'morning routine': {
-                    keywords: ['morning routine', 'morning', 'routine', 'wake up', 'start', 'beginning', 'am'],
-                    description: 'Morning routine content shows how creators start their day.',
-                    beginnerReason: 'Film your actual morning. Everyone has a morning routine. Highly searchable. Simple structure.',
-                    contentIdeas: [
-                        'My 5 AM morning routine',
-                        'Productive morning routine',
-                        'Realistic morning routine',
-                        'Morning routine for success',
-                        'Student morning routine'
-                    ]
-                },
-                'philosophy': {
-                    keywords: ['philosophy', 'philosophical', 'stoicism', 'existential', 'meaning', 'wisdom', 'think'],
-                    description: 'Philosophy content explores life\'s big questions and wisdom.',
-                    beginnerReason: 'Share thoughts and ideas. Thoughtful audience. Can use stock footage. Audio/voiceover focused.',
-                    contentIdeas: [
-                        'Stoicism explained simply',
-                        'Philosophy for daily life',
-                        'Life lessons from philosophy',
-                        'Existential thoughts',
-                        'Ancient wisdom applied today'
-                    ]
-                },
-                'street food': {
-                    keywords: ['street food', 'food stand', 'vendor', 'local food', 'market', 'street', 'cheap eats'],
-                    description: 'Street food content explores local cuisines and food culture.',
-                    beginnerReason: 'Film with your phone while eating. Food content is universally loved. Explore local area. Authentic appeal.',
-                    contentIdeas: [
-                        'Best street food in my city',
-                        'Trying local street vendors',
-                        'Food market tour',
-                        'Cheap eats challenge',
-                        'Street food around the world'
-                    ]
-                }
-            };
+    // Use the comprehensive niche categories already defined earlier in the code
+    const beginnerNicheCategories = {
+        'tutorial': {
+            keywords: ['tutorial', 'howto', 'guide', 'learn', 'explained', 'tips', 'beginner'],
+            description: 'Tutorial content is perfect for beginners - you can teach what you know without expensive equipment.',
+            beginnerReason: 'Low barrier to entry, screen recording software is free, and there\'s always demand for learning content. You can start with topics you already know.',
+            contentIdeas: [
+                'Software tutorials (free tools like Canva, GIMP, DaVinci Resolve)',
+                'Productivity tips and life hacks',
+                'Study techniques and note-taking methods',
+                'Language learning tips',
+                'How to use popular apps and websites'
+            ]
+        },
+        'commentary': {
+            keywords: ['react', 'reaction', 'review', 'explained', 'breakdown', 'analysis', 'commentary'],
+            description: 'Commentary and reaction content requires minimal equipment - just your voice and existing content to discuss.',
+            beginnerReason: 'No special equipment needed, you can record on your phone. Commentary on trending topics gets immediate views.',
+            contentIdeas: [
+                'React to viral videos (within fair use)',
+                'News commentary and analysis',
+                'Product reviews (things you already own)',
+                'Movie/show breakdowns and theories',
+                'Social media trend analysis'
+            ]
+        },
+        'lists': {
+            keywords: ['best', 'worst', 'list', 'ranking', 'facts', 'things', 'countdown'],
+            description: 'List-based content is easy to research and structure, perfect for starting out.',
+            beginnerReason: 'Simple format that\'s easy to script. Can use free stock footage and images. Highly searchable titles.',
+            contentIdeas: [
+                'Top 10 free tools for X',
+                'Best budget products under $50',
+                'Interesting facts about [topic]',
+                'Things you didn\'t know about [popular subject]',
+                'Comparing popular products'
+            ]
+        },
+        'podcast': {
+            keywords: ['podcast', 'interview', 'talk', 'discussion', 'conversation', 'story'],
+            description: 'Podcast-style content only needs a microphone and interesting conversations.',
+            beginnerReason: 'Audio-focused so production is simpler. Can collaborate with others remotely. Natural speaking style is encouraged.',
+            contentIdeas: [
+                'Interview interesting people in your field',
+                'Discuss current events with co-hosts',
+                'Story-time and personal experiences',
+                'Book/movie/game discussions',
+                'Answer audience questions'
+            ]
+        },
+        'gaming': {
+            keywords: ['game', 'gaming', 'gameplay', 'playthrough', 'walkthrough', 'lets'],
+            description: 'Gaming content is beginner-friendly if you focus on popular free games.',
+            beginnerReason: 'Free games available, built-in audience, OBS Studio is free for recording, and viewers enjoy personality over production quality.',
+            contentIdeas: [
+                'Free-to-play game tutorials (Fortnite, Roblox, Valorant)',
+                'Mobile game playthroughs',
+                'Game tips and strategies',
+                'Funny moments compilations',
+                'Beginner guides for popular games'
+            ]
+        },
+        'animation': {
+            keywords: ['animation', 'animated', 'story', 'cartoon', 'storytime', 'animatic'],
+            description: 'Simple animation and storytime content can be created with free tools.',
+            beginnerReason: 'Free tools like Krita and Blender available. Simple style animations are popular. Can outsource animation later once profitable.',
+            contentIdeas: [
+                'Animated storytimes (personal experiences)',
+                'Simple educational animations',
+                'Animated jokes and comedy skits',
+                'Stick figure animations (very popular)',
+                'Whiteboard animation explanations'
+            ]
+        },
+        'documentary': {
+            keywords: ['documentary', 'history', 'mystery', 'investigation', 'deep', 'case', 'story'],
+            description: 'Documentary-style content using research and stock footage is growing rapidly.',
+            beginnerReason: 'Research-based content, use free stock footage and images, voiceover-focused so no need to show face.',
+            contentIdeas: [
+                'Historical events explained',
+                'True crime cases (solved/old cases only)',
+                'Unsolved mysteries',
+                'Internet mysteries and deep dives',
+                'Company/brand history documentaries'
+            ]
+        },
+        'lifestyle': {
+            keywords: ['vlog', 'daily', 'routine', 'life', 'day', 'morning', 'night'],
+            description: 'Lifestyle vlogs are authentic and require minimal editing skills.',
+            beginnerReason: 'Just film your daily life with a phone camera. Authenticity matters more than production value. Easy to stay consistent.',
+            contentIdeas: [
+                'Day in the life vlogs',
+                'Morning/night routines',
+                'What I eat in a day',
+                'Productivity and time management',
+                'Student life / work life vlogs'
+            ]
+        },
+        'cooking': {
+            keywords: ['cooking', 'recipe', 'food', 'baking', 'meal', 'cook', 'kitchen'],
+            description: 'Cooking content is highly engaging and can be filmed with just a phone.',
+            beginnerReason: 'Everyone eats, so universal appeal. Just need a phone camera and kitchen. Recipe videos are highly searchable.',
+            contentIdeas: [
+                'Quick 5-minute recipes',
+                'Budget meal prep for the week',
+                'Cooking basics for beginners',
+                'One-pot meals and easy dinners',
+                'Baking simple desserts'
+            ]
+        },
+        'tech review': {
+            keywords: ['tech', 'review', 'unboxing', 'phone', 'gadget', 'device', 'iphone', 'android'],
+            description: 'Tech reviews attract engaged audiences researching purchases.',
+            beginnerReason: 'Review products you already own. Viewers appreciate honest opinions over fancy production. Can build to affiliate income.',
+            contentIdeas: [
+                'Budget tech under $100',
+                'Phone/laptop comparisons',
+                'Honest review of popular gadgets',
+                'Tech tips and hidden features',
+                'Is it worth it? Product reviews'
+            ]
+        },
+        'fitness': {
+            keywords: ['workout', 'fitness', 'exercise', 'training', 'gym', 'health', 'muscle'],
+            description: 'Fitness content inspires and helps people achieve their health goals.',
+            beginnerReason: 'Film workouts at home with phone. No gym needed. Viewers love following along. Personal transformation is compelling.',
+            contentIdeas: [
+                'Home workouts (no equipment needed)',
+                'Beginner fitness routines',
+                'Follow-along workout videos',
+                'Fitness transformation journey',
+                'Quick 10-minute exercises'
+            ]
+        },
+        'educational': {
+            keywords: ['science', 'math', 'education', 'school', 'study', 'lesson', 'teach'],
+            description: 'Educational content has dedicated audiences seeking to learn new things.',
+            beginnerReason: 'Share knowledge you already have. Students always need help. Can use simple whiteboard or screen recording.',
+            contentIdeas: [
+                'Science experiments at home',
+                'Math problem walkthroughs',
+                'Study tips and exam strategies',
+                'Explaining complex concepts simply',
+                'Educational fun facts'
+            ]
+        },
+        'comedy': {
+            keywords: ['funny', 'comedy', 'humor', 'laugh', 'joke', 'prank', 'meme'],
+            description: 'Comedy content is highly shareable and can go viral quickly.',
+            beginnerReason: 'Just need creativity and personality. Skits can be filmed anywhere. Comedy shorts blow up on YouTube Shorts.',
+            contentIdeas: [
+                'Relatable comedy skits',
+                'Observational humor about daily life',
+                'Character impressions',
+                'Parody videos',
+                'Comedy shorts and memes'
+            ]
+        },
+        'personal finance': {
+            keywords: ['money', 'finance', 'budget', 'saving', 'invest', 'debt', 'income'],
+            description: 'Finance content attracts viewers wanting to improve their money situation.',
+            beginnerReason: 'Share your money journey. Screen record budgeting apps. High value content with loyal audiences.',
+            contentIdeas: [
+                'How I budget and save money',
+                'Paying off debt journey',
+                'Beginner investing explained',
+                'Side hustle ideas',
+                'Living on a budget tips'
+            ]
+        },
+        'music covers': {
+            keywords: ['cover', 'music', 'song', 'singing', 'acoustic', 'piano', 'guitar'],
+            description: 'Music covers tap into existing fanbases and showcase talent.',
+            beginnerReason: 'Use instruments you already play. Built-in search traffic from song names. Phone recording quality is acceptable.',
+            contentIdeas: [
+                'Acoustic covers of popular songs',
+                'Mashups and medleys',
+                'Piano/guitar tutorials of hits',
+                'Singing covers with simple setup',
+                'Your unique take on trending songs'
+            ]
+        },
+        'asmr': {
+            keywords: ['asmr', 'relaxing', 'sleep', 'whisper', 'sound', 'tingles', 'calm'],
+            description: 'ASMR content helps people relax and has a dedicated following.',
+            beginnerReason: 'Just need a decent microphone. Simple, repetitive content. Loyal niche audience. Can film in any quiet space.',
+            contentIdeas: [
+                'Tapping and scratching sounds',
+                'Whispered storytelling',
+                'Roleplay scenarios (spa, haircut)',
+                'Nature sounds and ambiance',
+                'Study/work ambiance videos'
+            ]
+        },
+        'productivity': {
+            keywords: ['productivity', 'organized', 'planner', 'notion', 'journal', 'routine', 'efficient'],
+            description: 'Productivity content helps viewers optimize their time and life.',
+            beginnerReason: 'Share your actual systems. Screen record your setup. Highly searchable. Audience eager to improve.',
+            contentIdeas: [
+                'My productivity system explained',
+                'Notion/productivity app tutorials',
+                'Time management techniques',
+                'Digital planning and organization',
+                'Productivity tool reviews'
+            ]
+        },
+        'book reviews': {
+            keywords: ['book', 'reading', 'review', 'novel', 'literature', 'author', 'bookshelf'],
+            description: 'Book content connects with passionate readers seeking recommendations.',
+            beginnerReason: 'Talk about books you\'ve read. Simple talking head format. Engaged, loyal community. Easy to be consistent.',
+            contentIdeas: [
+                'Book reviews and recommendations',
+                'Reading vlogs and book hauls',
+                'Best books I read this month',
+                'Book vs movie comparisons',
+                'Reading challenges and TBR'
+            ]
+        },
+        'art': {
+            keywords: ['art', 'drawing', 'painting', 'sketch', 'artist', 'illustration', 'creative'],
+            description: 'Art content showcases creative process and inspires others.',
+            beginnerReason: 'Film your actual art process. Viewers love watching creation. Time-lapse videos are simple to make.',
+            contentIdeas: [
+                'Speed drawing time-lapses',
+                'Art tutorial basics',
+                'Digital art process videos',
+                'Sketching challenges',
+                'Art supply reviews'
+            ]
+        },
+        'travel': {
+            keywords: ['travel', 'trip', 'vacation', 'destination', 'adventure', 'tourist', 'explore'],
+            description: 'Travel content takes viewers to new places and provides trip ideas.',
+            beginnerReason: 'Film travels on your phone. Even local trips work. Viewers love living vicariously. Simple vlog style.',
+            contentIdeas: [
+                'Budget travel guides',
+                'Hidden gems in your city',
+                'Weekend trip vlogs',
+                'Travel tips and hacks',
+                'Food tours and local experiences'
+            ]
+        },
+        'photography': {
+            keywords: ['photo', 'photography', 'camera', 'lens', 'portrait', 'shot', 'photographer'],
+            description: 'Photography content teaches camera techniques and visual storytelling.',
+            beginnerReason: 'Start with phone photography. Free editing apps like Snapseed. Visual content is engaging and shareable.',
+            contentIdeas: [
+                'Phone photography tips',
+                'Beginner camera settings',
+                'Free photo editing tutorials',
+                'Composition techniques',
+                'Before and after edits'
+            ]
+        },
+        'pets': {
+            keywords: ['dog', 'cat', 'pet', 'puppy', 'kitten', 'animal', 'cute'],
+            description: 'Pet content is universally loved and easy to film with animals you already have.',
+            beginnerReason: 'Film your own pets. Cute animal content always performs well. Simple editing needed. Huge built-in audience.',
+            contentIdeas: [
+                'Funny pet moments compilation',
+                'Pet care tips and advice',
+                'Training your dog/cat',
+                'Day in the life of my pet',
+                'Pet product reviews'
+            ]
+        },
+        'diy crafts': {
+            keywords: ['diy', 'craft', 'handmade', 'make', 'create', 'project', 'build'],
+            description: 'DIY and craft content shows creative projects viewers can replicate.',
+            beginnerReason: 'Use materials around the house. Phone filming is fine. Satisfying to watch. Step-by-step format is simple.',
+            contentIdeas: [
+                'Easy DIY room decor',
+                '5-minute craft projects',
+                'Upcycling old items',
+                'DIY gifts on a budget',
+                'Beginner crafting tutorials'
+            ]
+        },
+        'fashion': {
+            keywords: ['fashion', 'outfit', 'style', 'clothing', 'wear', 'dress', 'trend'],
+            description: 'Fashion content showcases style and helps viewers with outfit inspiration.',
+            beginnerReason: 'Film yourself in different outfits. No special equipment. Can thrift or use existing wardrobe. Relatable content.',
+            contentIdeas: [
+                'Outfit of the week',
+                'Thrift store haul and styling',
+                'Budget fashion finds',
+                'How to style one piece 5 ways',
+                'Fashion trends explained'
+            ]
+        },
+        'beauty': {
+            keywords: ['makeup', 'beauty', 'skincare', 'cosmetic', 'routine', 'skin', 'hair'],
+            description: 'Beauty content covers makeup, skincare, and personal care routines.',
+            beginnerReason: 'Use products you already own. Ring light is affordable. Highly searchable. Great for affiliate marketing later.',
+            contentIdeas: [
+                'Everyday makeup routine',
+                'Drugstore beauty favorites',
+                'Skincare routine for beginners',
+                'Affordable beauty dupes',
+                'Get ready with me videos'
+            ]
+        },
+        'motivation': {
+            keywords: ['motivation', 'inspire', 'success', 'mindset', 'goals', 'hustle', 'growth'],
+            description: 'Motivational content inspires viewers to improve their lives.',
+            beginnerReason: 'Share your journey and lessons. Simple talking head format. Viewers love authentic stories. Easy to script.',
+            contentIdeas: [
+                'My journey and lessons learned',
+                'Daily motivation and affirmations',
+                'How I changed my mindset',
+                'Goal setting strategies',
+                'Overcoming challenges story'
+            ]
+        },
+        'minimalism': {
+            keywords: ['minimalism', 'declutter', 'organize', 'simple', 'minimal', 'less', 'organize'],
+            description: 'Minimalism content helps people simplify and organize their lives.',
+            beginnerReason: 'Film your own decluttering process. Before/after is satisfying. Growing trend. Simple filming setup.',
+            contentIdeas: [
+                'Decluttering my room',
+                'Minimalist lifestyle tips',
+                'Organize with me videos',
+                'What I got rid of and why',
+                'Living with less journey'
+            ]
+        },
+        'language learning': {
+            keywords: ['language', 'learn', 'spanish', 'french', 'english', 'speaking', 'fluent'],
+            description: 'Language learning content teaches new languages or study methods.',
+            beginnerReason: 'Teach a language you know. Whiteboard or screen record. Students always searching for free lessons.',
+            contentIdeas: [
+                'Learn [language] for beginners',
+                'Common phrases in [language]',
+                'My language learning journey',
+                'Tips to become fluent',
+                'Practice conversations'
+            ]
+        },
+        'plant care': {
+            keywords: ['plant', 'garden', 'houseplant', 'grow', 'succulent', 'green', 'propagate'],
+            description: 'Plant care content guides viewers in growing and maintaining plants.',
+            beginnerReason: 'Film your own plants. Peaceful, satisfying content. Growing niche. Time-lapses are easy with phone.',
+            contentIdeas: [
+                'Beginner houseplants guide',
+                'How to propagate plants',
+                'Plant care mistakes to avoid',
+                'My plant collection tour',
+                'Grow plants from scraps'
+            ]
+        },
+        'meditation': {
+            keywords: ['meditation', 'mindfulness', 'calm', 'peaceful', 'relax', 'breathe', 'zen'],
+            description: 'Meditation content helps viewers find calm and practice mindfulness.',
+            beginnerReason: 'Record calming voiceovers. Use free nature footage. Growing wellness trend. Simple production.',
+            contentIdeas: [
+                'Guided meditation for beginners',
+                '10-minute morning meditation',
+                'Meditation for sleep',
+                'Breathing exercises',
+                'Mindfulness practices'
+            ]
+        }
+    };
 
-            const niches = [];
+    const niches = [];
 
-            for (const [category, data] of Object.entries(beginnerNicheCategories)) {
-    // Search for matching content in trending - STRICT matching per niche
-    let totalViews = 0;
-    let videoCount = 0;
-    let frequency = 0;
-    const seenVideoIds = new Set(); // Track unique videos
+    for (const [category, data] of Object.entries(beginnerNicheCategories)) {
+        let totalViews = 0;
+        let totalLikes = 0;
+        let totalComments = 0;
+        let videoCount = 0;
+        let frequency = 0;
+        const seenVideoIds = new Set();
+        const uniqueChannels = new Set();
 
-    // First, check niche-specific search data if available
-    const nicheKey = category.toLowerCase().replace(/ /g, ' ');
-    if (nicheSearchData[category] || nicheSearchData[nicheKey]) {
-        const nicheVideos = nicheSearchData[category] || nicheSearchData[nicheKey];
-        nicheVideos.forEach(video => {
-            if (!seenVideoIds.has(video.videoId)) {
-                seenVideoIds.add(video.videoId);
-                totalViews += video.views;
-                videoCount++;
-                frequency++;
-            }
-        });
-    }
-
-    // Also search in trending data for additional matches
-    allLogs.forEach(log => {
-        log.trends.forEach(trend => {
-            const titleLower = trend.title.toLowerCase();
-            const channelLower = trend.channel.toLowerCase();
-            
-            // Count how many keywords match
-            const matchingKeywords = data.keywords.filter(kw => 
-                titleLower.includes(kw) || channelLower.includes(kw)
-            );
-            
-            // Require at least 2 keyword matches OR 1 highly specific keyword (8+ chars)
-            const hasStrongMatch = matchingKeywords.length >= 2;
-            const hasSpecificMatch = matchingKeywords.some(kw => kw.length >= 8);
-            
-            if (hasStrongMatch || hasSpecificMatch) {
-                // Only count unique videos (avoid counting same video multiple times)
-                if (!seenVideoIds.has(trend.videoId)) {
-                    seenVideoIds.add(trend.videoId);
-                    totalViews += trend.views;
+        // Check niche-specific search data
+        const nicheKey = category.toLowerCase();
+        if (nicheSearchData[category] || nicheSearchData[nicheKey]) {
+            const nicheVideos = nicheSearchData[category] || nicheSearchData[nicheKey];
+            nicheVideos.forEach(video => {
+                if (!seenVideoIds.has(video.videoId)) {
+                    seenVideoIds.add(video.videoId);
+                    uniqueChannels.add(video.channelId || video.channel);
+                    totalViews += video.views;
+                    totalLikes += video.likes || 0;
+                    totalComments += video.comments || 0;
                     videoCount++;
+                    frequency++;
                 }
-                frequency++;
-            }
-        });
-    });
-
-// Calculate scores with better differentiation
-    const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 2000000;
-    
-    // NEW: Calculate competition based on multiple factors
-    const nicheVideos = nicheSearchData[category] || nicheSearchData[nicheKey] || [];
-    const avgLikes = videoCount > 0 ? nicheVideos.reduce((sum, v) => sum + v.likes, 0) / videoCount : 0;
-    const engagementRate = avgViews > 0 ? avgLikes / avgViews : 0;
-    
-    // Competition factors:
-    // 1. Average views (higher = more competition)
-    // 2. How many times it appears in trending (frequency)
-    // 3. Engagement rate (higher = more passionate audience but also more competition)
-    
-    let competitionLevel = 0;
-    if (avgViews > 5000000) competitionLevel += 3;
-    else if (avgViews > 2000000) competitionLevel += 2;
-    else competitionLevel += 1;
-    
-    if (frequency > 15) competitionLevel += 3;
-    else if (frequency > 8) competitionLevel += 2;
-    else competitionLevel += 1;
-    
-    if (engagementRate > 0.06) competitionLevel += 2;
-    else if (engagementRate > 0.03) competitionLevel += 1;
-    
-    const competition = competitionLevel >= 7 ? 'High' : competitionLevel >= 5 ? 'Medium' : competitionLevel >= 3 ? 'Low' : 'Very Low';
-    
-    // Calculate growth
-    const recentFreq = allLogs.slice(-3).reduce((sum, log) => {
-        return sum + log.trends.filter(t => 
-            data.keywords.some(kw => t.title.toLowerCase().includes(kw))
-        ).length;
-    }, 0);
-    const growth = recentFreq > frequency / 2 ? '📈 Rising' : recentFreq < frequency / 3 ? '📉 Stable' : '➡️ Stable';
-
-    // Beginner score calculation with better data-based weighting
-    let competitionScore = competition === 'Very Low' ? 40 : competition === 'Low' ? 35 : competition === 'Medium' ? 25 : 15;
-    
-    // View score: sweet spot is 1-3M views (not too high = saturated, not too low = no audience)
-    let viewScore;
-    if (avgViews < 500000) viewScore = 10; // Too niche
-    else if (avgViews < 1500000) viewScore = 30; // Perfect!
-    else if (avgViews < 3000000) viewScore = 25; // Good
-    else if (avgViews < 5000000) viewScore = 20; // Getting competitive
-    else viewScore = 10; // Very competitive
-    
-    // Ease of creation score (based on engagement and niche characteristics)
-    let easeScore = 25;
-    if (engagementRate > 0.05) easeScore += 5; // Engaged audience is good
-    if (videoCount >= 10) easeScore += 5; // Proven market
-    
-    // Heavily penalize niches with no data
-    if (videoCount === 0) {
-        competitionScore = 5;
-        viewScore = 0;
-        easeScore = 5;
-    }
-    // Moderate penalty for very little data
-    else if (videoCount === 1 || videoCount === 2) {
-        competitionScore *= 0.6;
-        viewScore *= 0.6;
-        easeScore *= 0.6;
-    }
-    // Bonus for good amount of data
-    else if (videoCount >= 3) {
-        viewScore = Math.min(viewScore * 1.2, 35); // Cap at 35 with bonus
-    }
-    
-    const score = Math.round(competitionScore + viewScore + easeScore);
-    const isBeginnerFriendly = (competition === 'Very Low' || competition === 'Low') && videoCount >= 1;
-
-    // Extract actual trending keywords
-    const trendingKeywords = [];
-    allLogs.forEach(log => {
-        log.trends.forEach(trend => {
-            const titleLower = trend.title.toLowerCase();
-            data.keywords.forEach(kw => {
-                if (titleLower.includes(kw) && !trendingKeywords.includes(kw)) {
-                    trendingKeywords.push(kw);
-                }
-            });
-        });
-    });
-
-    niches.push({
-        name: category.charAt(0).toUpperCase() + category.slice(1).replace('documenta ry', 'Documentary'),
-        description: data.description,
-        beginnerReason: data.beginnerReason,
-        contentIdeas: data.contentIdeas,
-        avgViews: avgViews,
-        videoCount: videoCount,
-        frequency: Math.max(frequency, 1),
-        competition: competition,
-        engagementRate: engagementRate,
-        growth: growth,
-        score: score,
-        keywords: trendingKeywords.length > 0 ? trendingKeywords.slice(0, 6) : data.keywords.slice(0, 6),
-        isBeginnerFriendly: isBeginnerFriendly,
-        tips: getBeginnerTips(category, competition, growth),
-        workingStrategies: getWorkingStrategies(category.toLowerCase(), allLogs, data.keywords)
-    });
-}
-
-            return niches.sort((a, b) => {
-                // First priority: Niches with actual data (videoCount > 0)
-                const aHasData = a.frequency > 0 && a.avgViews > 0;
-                const bHasData = b.frequency > 0 && b.avgViews > 0;
-                if (aHasData && !bHasData) return -1;
-                if (!aHasData && bHasData) return 1;
-                
-                // Second priority: Beginner friendly
-                if (a.isBeginnerFriendly && !b.isBeginnerFriendly) return -1;
-                if (!a.isBeginnerFriendly && b.isBeginnerFriendly) return 1;
-                
-                // Third priority: Score (higher is better)
-                if (b.score !== a.score) return b.score - a.score;
-                
-                // Final tiebreaker: Frequency (more data = better ranking)
-                return b.frequency - a.frequency;
             });
         }
+
+        // Search in trending data
+        allLogs.forEach(log => {
+            log.trends.forEach(trend => {
+                const titleLower = trend.title.toLowerCase();
+                const matchingKeywords = data.keywords.filter(kw => titleLower.includes(kw));
+                
+                if (matchingKeywords.length >= 2 || matchingKeywords.some(kw => kw.length >= 8)) {
+                    if (!seenVideoIds.has(trend.videoId)) {
+                        seenVideoIds.add(trend.videoId);
+                        uniqueChannels.add(trend.channel);
+                        totalViews += trend.views;
+                        totalLikes += trend.likes || 0;
+                        videoCount++;
+                    }
+                    frequency++;
+                }
+            });
+        });
+
+        const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 0;
+        const avgLikes = videoCount > 0 ? Math.floor(totalLikes / videoCount) : 0;
+        const avgComments = videoCount > 0 ? Math.floor(totalComments / videoCount) : 0;
+        const engagementRate = avgViews > 0 ? avgLikes / avgViews : 0;
+        const channelDiversity = videoCount > 0 ? uniqueChannels.size / videoCount : 0;
+        
+        let competitionLevel = 0;
+        if (avgViews > 5000000) competitionLevel += 3;
+        else if (avgViews > 2000000) competitionLevel += 2;
+        else competitionLevel += 1;
+        
+        if (frequency > 15) competitionLevel += 3;
+        else if (frequency > 8) competitionLevel += 2;
+        else competitionLevel += 1;
+        
+        const competition = competitionLevel >= 7 ? 'Very High' : 
+                          competitionLevel >= 5 ? 'High' : 
+                          competitionLevel >= 3 ? 'Medium' : 
+                          competitionLevel >= 2 ? 'Low' : 'Very Low';
+        
+        const recentFreq = allLogs.slice(-3).reduce((sum, log) => {
+            return sum + log.trends.filter(t => 
+                data.keywords.some(kw => t.title.toLowerCase().includes(kw))
+            ).length;
+        }, 0);
+        
+        const oldFreq = allLogs.slice(0, Math.min(3, allLogs.length)).reduce((sum, log) => {
+            return sum + log.trends.filter(t => 
+                data.keywords.some(kw => t.title.toLowerCase().includes(kw))
+            ).length;
+        }, 0);
+        
+        let growthRate = 0;
+        let growthTrend = '➡️ Stable';
+        
+        if (oldFreq > 0) {
+            growthRate = ((recentFreq - oldFreq) / oldFreq) * 100;
+            if (growthRate > 50) growthTrend = '🚀 Exploding';
+            else if (growthRate > 20) growthTrend = '📈 Rising Fast';
+            else if (growthRate > 5) growthTrend = '📈 Growing';
+            else if (growthRate < -20) growthTrend = '📉 Declining';
+            else if (growthRate < -5) growthTrend = '📉 Slowing';
+        } else if (recentFreq > 0) {
+            growthRate = 100;
+            growthTrend = '🚀 Exploding';
+        }
+
+        let successChance = 50;
+        if (competition === 'Very Low') successChance += 25;
+        else if (competition === 'Low') successChance += 20;
+        else if (competition === 'Medium') successChance += 10;
+        else if (competition === 'High') successChance -= 5;
+        else successChance -= 15;
+        
+        if (growthRate > 30) successChance += 15;
+        else if (growthRate > 10) successChance += 10;
+        else if (growthRate > 0) successChance += 5;
+        
+        if (avgViews >= 500000 && avgViews <= 3000000) successChance += 10;
+        else if (avgViews < 500000) successChance -= 5;
+        
+        if (videoCount >= 20) successChance += 5;
+        else if (videoCount < 5) successChance -= 10;
+        
+        successChance = Math.max(0, Math.min(100, successChance));
+
+        let beginnerScore = 0;
+        if (competition === 'Very Low') beginnerScore += 40;
+        else if (competition === 'Low') beginnerScore += 35;
+        else if (competition === 'Medium') beginnerScore += 25;
+        else if (competition === 'High') beginnerScore += 15;
+        else beginnerScore += 5;
+        
+        if (avgViews < 500000) beginnerScore += 10;
+        else if (avgViews < 1500000) beginnerScore += 30;
+        else if (avgViews < 3000000) beginnerScore += 25;
+        else if (avgViews < 5000000) beginnerScore += 20;
+        else beginnerScore += 10;
+        
+        if (engagementRate > 0.05) beginnerScore += 5;
+        if (videoCount >= 10) beginnerScore += 5;
+        if (channelDiversity > 0.5) beginnerScore += 10;
+        if (growthRate > 0) beginnerScore += 10;
+        
+        if (videoCount === 0) beginnerScore = 5;
+        else if (videoCount < 3) beginnerScore = Math.round(beginnerScore * 0.6);
+        else if (videoCount >= 15) beginnerScore = Math.min(Math.round(beginnerScore * 1.1), 100);
+        
+        beginnerScore = Math.round(beginnerScore);
+
+        const monthlyViewsPotential = Math.round(avgViews * 8);
+        const estimatedMonthlyEarnings = {
+            low: Math.round((monthlyViewsPotential / 1000) * 2),
+            mid: Math.round((monthlyViewsPotential / 1000) * 5),
+            high: Math.round((monthlyViewsPotential / 1000) * 8)
+        };
+
+        const isBeginnerFriendly = beginnerScore >= 65 && videoCount >= 5;
+
+        const trendingKeywords = [];
+        allLogs.forEach(log => {
+            log.trends.forEach(trend => {
+                const titleLower = trend.title.toLowerCase();
+                data.keywords.forEach(kw => {
+                    if (titleLower.includes(kw) && !trendingKeywords.includes(kw)) {
+                        trendingKeywords.push(kw);
+                    }
+                });
+            });
+        });
+
+        niches.push({
+            name: category.charAt(0).toUpperCase() + category.slice(1),
+            description: data.description,
+            beginnerReason: data.beginnerReason,
+            contentIdeas: data.contentIdeas,
+            avgViews: avgViews,
+            videoCount: videoCount,
+            frequency: Math.max(frequency, 1),
+            competition: competition,
+            engagementRate: engagementRate,
+            growth: growthTrend,
+            growthRate: growthRate.toFixed(1),
+            successChance: successChance,
+            beginnerScore: beginnerScore,
+            score: beginnerScore,
+            monthlyViewsPotential: monthlyViewsPotential,
+            estimatedEarnings: estimatedMonthlyEarnings,
+            channelDiversity: (channelDiversity * 100).toFixed(0),
+            avgComments: avgComments,
+            keywords: trendingKeywords.length > 0 ? trendingKeywords.slice(0, 6) : data.keywords.slice(0, 6),
+            isBeginnerFriendly: isBeginnerFriendly,
+            tips: getBeginnerTips(category, competition, growthTrend),
+            workingStrategies: getWorkingStrategies(category.toLowerCase(), allLogs, data.keywords)
+        });
+    }
+
+    return niches.sort((a, b) => {
+        // Optimal sample size: 30+ videos for statistical reliability
+        // 50+ videos = excellent data, 30-49 = good data, 15-29 = acceptable, <15 = insufficient
+        const aHasData = a.videoCount >= 30;
+        const bHasData = b.videoCount >= 30;
+        
+        // Prioritize niches with sufficient data (30+ videos)
+        if (aHasData && !bHasData) return -1;
+        if (!aHasData && bHasData) return 1;
+        
+        // Both have sufficient data - sort by beginnerScore first, then successChance
+        if (b.beginnerScore !== a.beginnerScore) {
+            return b.beginnerScore - a.beginnerScore;
+        }
+        return b.successChance - a.successChance;
+    });
+}
 
         function getBeginnerTips(category, competition, growth) {
     // Get keywords for this category
@@ -2908,18 +3146,47 @@ function createKeywordsChart() {
                     const score = Math.round(viewScore + freqScore + compScore);
 
                     niches.push({
-                        name: category.charAt(0).toUpperCase() + category.slice(1),
-                        description: getNicheDescription(category),
-                        avgViews: avgViews,
-                        frequency: frequency,
-                        competition: competition,
-                        growth: growth,
-                        score: score,
-                        keywords: topKeywords,
-                        tips: getNicheTips(category, competition, growth)
-                    });
+        name: category.charAt(0).toUpperCase() + category.slice(1).replace('documenta ry', 'Documentary'),
+        description: data.description,
+        beginnerReason: data.beginnerReason,
+        contentIdeas: data.contentIdeas,
+        avgViews: avgViews,
+        videoCount: videoCount,
+        frequency: Math.max(frequency, 1),
+        competition: competition,
+        engagementRate: engagementRate,
+        growth: growthTrend,
+        growthRate: growthRate.toFixed(1),
+        successChance: successChance,
+        beginnerScore: beginnerScore,
+        score: beginnerScore, // Use beginnerScore as main score
+        monthlyViewsPotential: monthlyViewsPotential,
+        estimatedEarnings: estimatedMonthlyEarnings,
+        channelDiversity: (channelDiversity * 100).toFixed(0),
+        avgComments: Math.floor(avgComments),
+        keywords: trendingKeywords.length > 0 ? trendingKeywords.slice(0, 6) : data.keywords.slice(0, 6),
+        isBeginnerFriendly: isBeginnerFriendly,
+        tips: getBeginnerTips(category, competition, growthTrend),
+        workingStrategies: getWorkingStrategies(category.toLowerCase(), allLogs, data.keywords)
+    });
+}
+
+            return niches.sort((a, b) => {
+                // CRITICAL: Only consider niches with actual data (videoCount >= 15)
+                const aHasData = a.videoCount >= 15;
+                const bHasData = b.videoCount >= 15;
+                
+                // Niches WITH data always rank above niches WITHOUT data
+                if (aHasData && !bHasData) return -1;
+                if (!aHasData && bHasData) return 1;
+                
+                // Both have data - sort by beginnerScore first, then successChance
+                if (b.beginnerScore !== a.beginnerScore) {
+                    return b.beginnerScore - a.beginnerScore;
                 }
-            }
+                return b.successChance - a.successChance;
+            });
+        }
 
             return niches.sort((a, b) => b.score - a.score);
         }
