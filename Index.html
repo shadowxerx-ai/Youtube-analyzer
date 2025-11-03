@@ -729,8 +729,8 @@ async function fetchNicheData() {
             // Search each niche (will take ~2-3 minutes total)
             for (const [niche, query] of Object.entries(allNicheQueries)) {
                 try {
-                    const response = await fetch(
-                        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=15&order=viewCount&relevanceLanguage=en&key=${YOUTUBE_API_KEY}`
+                    response = await fetch(
+                        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=25&order=viewCount&relevanceLanguage=en&key=${YOUTUBE_API_KEY}`
                     );
                     
                     if (!response.ok) {
@@ -1450,12 +1450,16 @@ function createKeywordsChart() {
                                     <div class="niche-stat-label">Avg Views</div>
                                 </div>
                                 <div class="niche-stat-item">
-                                    <div class="niche-stat-value">${niche.frequency}</div>
-                                    <div class="niche-stat-label">Trend Frequency</div>
+                                    <div class="niche-stat-value">${niche.videoCount || 0}</div>
+                                    <div class="niche-stat-label">Videos Analyzed</div>
                                 </div>
                                 <div class="niche-stat-item">
                                     <div class="niche-stat-value">${niche.competition}</div>
                                     <div class="niche-stat-label">Competition</div>
+                                </div>
+                                <div class="niche-stat-item">
+                                    <div class="niche-stat-value">${((niche.engagementRate || 0) * 100).toFixed(1)}%</div>
+                                    <div class="niche-stat-label">Engagement</div>
                                 </div>
                                 <div class="niche-stat-item">
                                     <div class="niche-stat-value">${niche.growth}</div>
@@ -2361,9 +2365,32 @@ function createKeywordsChart() {
         });
     });
 
-    // Calculate scores
+// Calculate scores with better differentiation
     const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 2000000;
-    const competition = frequency > 12 ? 'Medium' : frequency > 6 ? 'Low' : 'Very Low';
+    
+    // NEW: Calculate competition based on multiple factors
+    const nicheVideos = nicheSearchData[category] || nicheSearchData[nicheKey] || [];
+    const avgLikes = videoCount > 0 ? nicheVideos.reduce((sum, v) => sum + v.likes, 0) / videoCount : 0;
+    const engagementRate = avgViews > 0 ? avgLikes / avgViews : 0;
+    
+    // Competition factors:
+    // 1. Average views (higher = more competition)
+    // 2. How many times it appears in trending (frequency)
+    // 3. Engagement rate (higher = more passionate audience but also more competition)
+    
+    let competitionLevel = 0;
+    if (avgViews > 5000000) competitionLevel += 3;
+    else if (avgViews > 2000000) competitionLevel += 2;
+    else competitionLevel += 1;
+    
+    if (frequency > 15) competitionLevel += 3;
+    else if (frequency > 8) competitionLevel += 2;
+    else competitionLevel += 1;
+    
+    if (engagementRate > 0.06) competitionLevel += 2;
+    else if (engagementRate > 0.03) competitionLevel += 1;
+    
+    const competition = competitionLevel >= 7 ? 'High' : competitionLevel >= 5 ? 'Medium' : competitionLevel >= 3 ? 'Low' : 'Very Low';
     
     // Calculate growth
     const recentFreq = allLogs.slice(-3).reduce((sum, log) => {
@@ -2373,29 +2400,41 @@ function createKeywordsChart() {
     }, 0);
     const growth = recentFreq > frequency / 2 ? '📈 Rising' : recentFreq < frequency / 3 ? '📉 Stable' : '➡️ Stable';
 
-    // Beginner score calculation
-    let competitionScore = competition === 'Very Low' ? 40 : competition === 'Low' ? 35 : 25;
-    let viewScore = Math.min((avgViews / 3000000) * 30, 30);
-    let easeScore = 30;
+    // Beginner score calculation with better data-based weighting
+    let competitionScore = competition === 'Very Low' ? 40 : competition === 'Low' ? 35 : competition === 'Medium' ? 25 : 15;
     
+    // View score: sweet spot is 1-3M views (not too high = saturated, not too low = no audience)
+    let viewScore;
+    if (avgViews < 500000) viewScore = 10; // Too niche
+    else if (avgViews < 1500000) viewScore = 30; // Perfect!
+    else if (avgViews < 3000000) viewScore = 25; // Good
+    else if (avgViews < 5000000) viewScore = 20; // Getting competitive
+    else viewScore = 10; // Very competitive
+    
+    // Ease of creation score (based on engagement and niche characteristics)
+    let easeScore = 25;
+    if (engagementRate > 0.05) easeScore += 5; // Engaged audience is good
+    if (videoCount >= 10) easeScore += 5; // Proven market
+    
+    // Heavily penalize niches with no data
     if (videoCount === 0) {
-        competitionScore *= 0.3;
+        competitionScore = 5;
         viewScore = 0;
-        easeScore *= 0.3;
+        easeScore = 5;
     }
-    
-    if (videoCount > 0 && videoCount <= 2) {
+    // Moderate penalty for very little data
+    else if (videoCount === 1 || videoCount === 2) {
         competitionScore *= 0.6;
         viewScore *= 0.6;
         easeScore *= 0.6;
     }
-    
-    if (videoCount >= 3) {
-        viewScore *= 1.2;
+    // Bonus for good amount of data
+    else if (videoCount >= 3) {
+        viewScore = Math.min(viewScore * 1.2, 35); // Cap at 35 with bonus
     }
     
     const score = Math.round(competitionScore + viewScore + easeScore);
-    const isBeginnerFriendly = competition === 'Very Low' || competition === 'Low';
+    const isBeginnerFriendly = (competition === 'Very Low' || competition === 'Low') && videoCount >= 1;
 
     // Extract actual trending keywords
     const trendingKeywords = [];
@@ -2416,8 +2455,10 @@ function createKeywordsChart() {
         beginnerReason: data.beginnerReason,
         contentIdeas: data.contentIdeas,
         avgViews: avgViews,
+        videoCount: videoCount,
         frequency: Math.max(frequency, 1),
         competition: competition,
+        engagementRate: engagementRate,
         growth: growth,
         score: score,
         keywords: trendingKeywords.length > 0 ? trendingKeywords.slice(0, 6) : data.keywords.slice(0, 6),
@@ -2428,10 +2469,21 @@ function createKeywordsChart() {
 }
 
             return niches.sort((a, b) => {
-                // Prioritize beginner-friendly, then score
+                // First priority: Niches with actual data (videoCount > 0)
+                const aHasData = a.frequency > 0 && a.avgViews > 0;
+                const bHasData = b.frequency > 0 && b.avgViews > 0;
+                if (aHasData && !bHasData) return -1;
+                if (!aHasData && bHasData) return 1;
+                
+                // Second priority: Beginner friendly
                 if (a.isBeginnerFriendly && !b.isBeginnerFriendly) return -1;
                 if (!a.isBeginnerFriendly && b.isBeginnerFriendly) return 1;
-                return b.score - a.score;
+                
+                // Third priority: Score (higher is better)
+                if (b.score !== a.score) return b.score - a.score;
+                
+                // Final tiebreaker: Frequency (more data = better ranking)
+                return b.frequency - a.frequency;
             });
         }
 
