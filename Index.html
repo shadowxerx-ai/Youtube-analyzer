@@ -703,6 +703,135 @@
         const YOUTUBE_API_KEY = 'AIzaSyB0UmfLhp8qFm7TuFaYtaLNgSIw72KmqEA';
         const REGION_CODE = 'US';
         
+        // IndexedDB Setup - No storage limits!
+let db;
+
+// IndexedDB Setup - No storage limits!
+let trendsDB; // ← Changed from 'db' to 'trendsDB'
+
+async function initDB() {
+    return new Promise((resolve, reject) => {
+        console.log('Opening IndexedDB...');
+        const request = indexedDB.open('YouTubeTrendsDB', 1);
+        
+        request.onerror = () => {
+            console.error('IndexedDB error:', request.error);
+            reject(request.error);
+        };
+        
+        request.onsuccess = () => {
+            trendsDB = request.result; // ← Changed
+            console.log('IndexedDB opened successfully');
+            resolve(trendsDB); // ← Changed
+        };
+        
+        request.onupgradeneeded = (event) => {
+            console.log('Creating IndexedDB schema...');
+            const trendsDB = event.target.result; // ← Changed
+            if (!trendsDB.objectStoreNames.contains('trends')) {
+                trendsDB.createObjectStore('trends', { keyPath: 'id', autoIncrement: true });
+                console.log('Created trends object store');
+            }
+        };
+    });
+}
+
+async function saveToIndexedDB(key, data) {
+    try {
+        if (!db) {
+            console.log('DB not initialized, initializing now...');
+            await initDB();
+        }
+        
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['trends'], 'readwrite');
+            const store = transaction.objectStore('trends');
+            const request = store.put({ id: key, data: data });
+            
+            request.onsuccess = () => {
+                console.log(`✅ Saved to IndexedDB: ${key}`);
+                resolve();
+            };
+            request.onerror = () => {
+                console.error('Save error:', request.error);
+                reject(request.error);
+            };
+        });
+    } catch (error) {
+        console.error('saveToIndexedDB failed:', error);
+        throw error;
+    }
+}
+
+async function loadFromIndexedDB(key) {
+    try {
+        if (!trendsDB) { // ← Changed
+            console.log('DB not initialized, initializing now...');
+            await initDB();
+        }
+        
+        return new Promise((resolve, reject) => {
+            const transaction = trendsDB.transaction(['trends'], 'readonly'); // ← Changed
+            const store = transaction.objectStore('trends');
+            const request = store.get(key);
+            
+            request.onsuccess = () => {
+                if (request.result) {
+                    console.log(`✅ Loaded from IndexedDB: ${key}`);
+                } else {
+                    console.log(`⚠️ No data found for: ${key}`);
+                }
+                resolve(request.result?.data || null);
+            };
+            request.onerror = () => {
+                console.error('Load error:', request.error);
+                reject(request.error);
+            };
+        });
+    } catch (error) {
+        console.error('loadFromIndexedDB failed:', error);
+        throw error;
+    }
+}
+
+async function saveToIndexedDB(key, data) {
+    try {
+        if (!trendsDB) { // ← Changed
+            console.log('DB not initialized, initializing now...');
+            await initDB();
+        }
+        
+        return new Promise((resolve, reject) => {
+            const transaction = trendsDB.transaction(['trends'], 'readwrite'); // ← Changed
+            const store = transaction.objectStore('trends');
+            const request = store.put({ id: key, data: data });
+            
+            request.onsuccess = () => {
+                console.log(`✅ Saved to IndexedDB: ${key}`);
+                resolve();
+            };
+            request.onerror = () => {
+                console.error('Save error:', request.error);
+                reject(request.error);
+            };
+        });
+    } catch (error) {
+        console.error('saveToIndexedDB failed:', error);
+        throw error;
+    }
+}
+
+async function loadFromIndexedDB(key) {
+    if (!db) await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['trends'], 'readonly');
+        const store = transaction.objectStore('trends');
+        const request = store.get(key);
+        
+        request.onsuccess = () => resolve(request.result?.data || null);
+        request.onerror = () => reject(request.error);
+    });
+}
         let allLogs = [];
         let nicheSearchData = {}; // Store niche-specific search results
         let currentView = 'dashboard';
@@ -1375,73 +1504,89 @@ const categoryKeywords = {
 };
         // 15 minutes in milliseconds (96 times per day)
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadStoredData();
-            checkAndFetchTrends();
-            
-            // Check every minute if it's time to fetch
-            setInterval(checkAndFetchTrends, 60 * 1000);
-        });
-
-        function checkAndFetchTrends() {
-            const now = Date.now();
-            const storedLastFetch = localStorage.getItem('lastFetchTime');
-            
-            if (storedLastFetch) {
-                lastFetchTime = parseInt(storedLastFetch);
-            }
-            
-            // Only fetch if it's been more than 30 minutes OR if we have no data
-            if (now - lastFetchTime >= FETCH_INTERVAL || allLogs.length === 0) {
-                fetchTrends();
-            } else {
-                // Just display existing data
-                showView(currentView);
-                const timeUntilNext = FETCH_INTERVAL - (now - lastFetchTime);
-                const minutesLeft = Math.floor(timeUntilNext / (60 * 1000));
-                console.log(`Next update in ${minutesLeft} minutes`);
-            }
-            
-            // Check if we should do niche searches (once per day)
-            if (now - lastNicheSearchTime >= NICHE_SEARCH_INTERVAL || Object.keys(nicheSearchData).length === 0) {
-                fetchNicheData();
-            }
-        }
+// Initialize
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 App initializing...');
+    
+    try {
+        console.log('📂 Initializing IndexedDB...');
+        await initDB();
+        console.log('✅ IndexedDB ready');
+        
+        console.log('📥 Loading stored data...');
+        await loadStoredData();
+        console.log('✅ Data loaded');
+        
+        console.log('🔄 Checking for trends...');
+        await checkAndFetchTrends();
+        console.log('✅ Initial check complete');
+        
+        // Check every minute if it's time to fetch
+        setInterval(() => {
+            checkAndFetchTrends().catch(err => {
+                console.error('Error in interval fetch:', err);
+            });
+        }, 60 * 1000);
+        
+        console.log('✅ App fully initialized');
+    } catch (error) {
+        console.error('❌ Initialization failed:', error);
+        showError(`Initialization error: ${error.message}`);
+    }
+});
+        async function checkAndFetchTrends() {
+    const now = Date.now();
+    const storedLastFetch = localStorage.getItem('lastFetchTime');
+    
+    if (storedLastFetch) {
+        lastFetchTime = parseInt(storedLastFetch);
+    }
+    
+    // Only fetch if it's been more than 30 minutes OR if we have no data
+    if (now - lastFetchTime >= FETCH_INTERVAL || allLogs.length === 0) {
+        await fetchTrends(); // ← ADD await here
+    } else {
+        // Just display existing data
+        showView(currentView);
+        const timeUntilNext = FETCH_INTERVAL - (now - lastFetchTime);
+        const minutesLeft = Math.floor(timeUntilNext / (60 * 1000));
+        console.log(`Next update in ${minutesLeft} minutes`);
+    }
+}
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
         }
 
         async function fetchTrends() {
-            showLoading();
-            
-            try {
-                const response = await fetch(
-                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=${REGION_CODE}&maxResults=50&key=${YOUTUBE_API_KEY}`
-                );
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch trends');
-                }
-                
-                const data = await response.json();
-                const trends = processTrends(data);
-                
-                storeTrends(trends);
-                
-                // Store the fetch time
-                lastFetchTime = Date.now();
-                localStorage.setItem('lastFetchTime', lastFetchTime.toString());
-                
-                updateLastUpdatedTime();
-                showView(currentView);
-                
-            } catch (error) {
-                showError('Error fetching trends. Check your API key in the code.');
-                console.error(error);
-            }
+    showLoading();
+    
+    try {
+        const response = await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=${REGION_CODE}&maxResults=50&key=${YOUTUBE_API_KEY}`
+        );
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch trends');
         }
+        
+        const data = await response.json();
+        const trends = processTrends(data);
+        
+        await storeTrends(trends); // ← ADD await here
+        
+        // Store the fetch time
+        lastFetchTime = Date.now();
+        localStorage.setItem('lastFetchTime', lastFetchTime.toString());
+        
+        updateLastUpdatedTime();
+        showView(currentView);
+        
+    } catch (error) {
+        showError('Error fetching trends. Check your API key in the code.');
+        console.error(error);
+    }
+}
 
         function updateLastUpdatedTime() {
             const now = new Date();
@@ -1470,40 +1615,69 @@ const categoryKeywords = {
             }));
         }
 
-        function storeTrends(trends) {
-    const log = {
-        timestamp: new Date().toISOString(),
-        trends: trends
-    };
-    
-    // Always add as new entry (never replace)
-    allLogs.push(log);
-    
-    // Keep last 200 data points (about 2 weeks of 15-min intervals)
-    if (allLogs.length > 200) {
-        allLogs = allLogs.slice(-200);
+        async function storeTrends(trends) {
+    try {
+        const log = {
+            timestamp: new Date().toISOString(),
+            trends: trends
+        };
+        
+        allLogs.push(log);
+        
+        // Keep last 5000 snapshots = ~100 days of data = 250,000 video data points!
+        if (allLogs.length > 5000) {
+            allLogs = allLogs.slice(-5000);
+        }
+        
+        // Save to IndexedDB (can handle gigabytes)
+        await saveToIndexedDB('youtubeTrendsData', allLogs);
+        
+        console.log(`📊 Stored ${allLogs.length} snapshots in IndexedDB (${(allLogs.length * 50).toLocaleString()} total videos tracked)`);
+    } catch (error) {
+        console.error('❌ Error storing trends:', error);
+        // Fallback to localStorage if IndexedDB fails
+        try {
+            localStorage.setItem('youtubeTrendsData', JSON.stringify(allLogs));
+            console.log('⚠️ Fell back to localStorage');
+        } catch (e) {
+            console.error('❌ Both storage methods failed:', e);
+        }
     }
-    
-    localStorage.setItem('youtubeTrendsData', JSON.stringify(allLogs));
 }
 
-        function loadStoredData() {
-            const stored = localStorage.getItem('youtubeTrendsData');
-            if (stored) {
-                allLogs = JSON.parse(stored);
-            }
+        async function loadStoredData() {
+    try {
+        console.log('Starting loadStoredData...');
+        
+        // Try to load from IndexedDB
+        const stored = await loadFromIndexedDB('youtubeTrendsData');
+        
+        if (stored && Array.isArray(stored)) {
+            allLogs = stored;
+            console.log(`✅ Loaded ${allLogs.length} snapshots from IndexedDB`);
+            checkStorageHealth();
+        } else {
+            console.log('No IndexedDB data, checking localStorage...');
             
-            const storedNicheData = localStorage.getItem('nicheSearchData');
-            if (storedNicheData) {
-                nicheSearchData = JSON.parse(storedNicheData);
-            }
-            
-            const storedNicheTime = localStorage.getItem('lastNicheSearchTime');
-            if (storedNicheTime) {
-                lastNicheSearchTime = parseInt(storedNicheTime);
+            // Fallback: Try old localStorage data and migrate
+            const oldData = localStorage.getItem('youtubeTrendsData');
+            if (oldData) {
+                console.log('Found localStorage data, migrating...');
+                allLogs = JSON.parse(oldData);
+                await saveToIndexedDB('youtubeTrendsData', allLogs);
+                localStorage.removeItem('youtubeTrendsData');
+                console.log('✅ Migrated data from localStorage to IndexedDB');
+            } else {
+                console.log('ℹ️ No existing data found - starting fresh');
+                allLogs = [];
             }
         }
-
+    } catch (error) {
+        console.error('❌ Error loading data:', error);
+        // Fallback to empty array if all else fails
+        allLogs = [];
+    }
+}
         function showView(view) {
             currentView = view;
             
@@ -2159,10 +2333,10 @@ function getSuccessInterpretation(niche) {
         }
 
         function analyzeBeginnerNiches() {
-    // Use the comprehensive niche categories already defined earlier in the code
+    // Enhanced beginner-friendly niche categories with better keyword matching
     const beginnerNicheCategories = {
         'tutorial': {
-            keywords: ['tutorial', 'howto', 'guide', 'learn', 'explained', 'tips', 'beginner'],
+            keywords: ['tutorial', 'how to', 'howto', 'guide', 'learn', 'explained', 'tips', 'beginner', 'step by step'],
             description: 'Tutorial content is perfect for beginners - you can teach what you know without expensive equipment.',
             beginnerReason: 'Low barrier to entry, screen recording software is free, and there\'s always demand for learning content. You can start with topics you already know.',
             contentIdeas: [
@@ -2174,7 +2348,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'commentary': {
-            keywords: ['react', 'reaction', 'review', 'explained', 'breakdown', 'analysis', 'commentary'],
+            keywords: ['react', 'reaction', 'review', 'explained', 'breakdown', 'analysis', 'commentary', 'thoughts', 'opinion'],
             description: 'Commentary and reaction content requires minimal equipment - just your voice and existing content to discuss.',
             beginnerReason: 'No special equipment needed, you can record on your phone. Commentary on trending topics gets immediate views.',
             contentIdeas: [
@@ -2186,7 +2360,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'lists': {
-            keywords: ['best', 'worst', 'list', 'ranking', 'facts', 'things', 'countdown'],
+            keywords: ['best', 'worst', 'list', 'ranking', 'facts', 'things', 'countdown', 'top', 'top 10'],
             description: 'List-based content is easy to research and structure, perfect for starting out.',
             beginnerReason: 'Simple format that\'s easy to script. Can use free stock footage and images. Highly searchable titles.',
             contentIdeas: [
@@ -2198,7 +2372,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'podcast': {
-            keywords: ['podcast', 'interview', 'talk', 'discussion', 'conversation', 'story'],
+            keywords: ['podcast', 'interview', 'talk', 'discussion', 'conversation', 'episode', 'show', 'series'],
             description: 'Podcast-style content only needs a microphone and interesting conversations.',
             beginnerReason: 'Audio-focused so production is simpler. Can collaborate with others remotely. Natural speaking style is encouraged.',
             contentIdeas: [
@@ -2210,7 +2384,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'gaming': {
-            keywords: ['game', 'gaming', 'gameplay', 'playthrough', 'walkthrough', 'lets'],
+            keywords: ['game', 'gaming', 'gameplay', 'playthrough', 'walkthrough', 'lets play', 'gamer', 'esports'],
             description: 'Gaming content is beginner-friendly if you focus on popular free games.',
             beginnerReason: 'Free games available, built-in audience, OBS Studio is free for recording, and viewers enjoy personality over production quality.',
             contentIdeas: [
@@ -2222,7 +2396,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'animation': {
-            keywords: ['animation', 'animated', 'story', 'cartoon', 'storytime', 'animatic'],
+            keywords: ['animation', 'animated', 'story', 'cartoon', 'storytime', 'animatic', 'animator'],
             description: 'Simple animation and storytime content can be created with free tools.',
             beginnerReason: 'Free tools like Krita and Blender available. Simple style animations are popular. Can outsource animation later once profitable.',
             contentIdeas: [
@@ -2234,7 +2408,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'documentary': {
-            keywords: ['documentary', 'history', 'mystery', 'investigation', 'deep', 'case', 'story'],
+            keywords: ['documentary', 'history', 'mystery', 'investigation', 'deep dive', 'case', 'story', 'true story'],
             description: 'Documentary-style content using research and stock footage is growing rapidly.',
             beginnerReason: 'Research-based content, use free stock footage and images, voiceover-focused so no need to show face.',
             contentIdeas: [
@@ -2246,7 +2420,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'lifestyle': {
-            keywords: ['vlog', 'daily', 'routine', 'life', 'day', 'morning', 'night'],
+            keywords: ['vlog', 'daily', 'routine', 'life', 'day', 'morning', 'night', 'lifestyle'],
             description: 'Lifestyle vlogs are authentic and require minimal editing skills.',
             beginnerReason: 'Just film your daily life with a phone camera. Authenticity matters more than production value. Easy to stay consistent.',
             contentIdeas: [
@@ -2258,7 +2432,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'cooking': {
-            keywords: ['cooking', 'recipe', 'food', 'baking', 'meal', 'cook', 'kitchen'],
+            keywords: ['cooking', 'recipe', 'food', 'baking', 'meal', 'cook', 'kitchen', 'chef'],
             description: 'Cooking content is highly engaging and can be filmed with just a phone.',
             beginnerReason: 'Everyone eats, so universal appeal. Just need a phone camera and kitchen. Recipe videos are highly searchable.',
             contentIdeas: [
@@ -2270,7 +2444,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'tech review': {
-            keywords: ['tech', 'review', 'unboxing', 'phone', 'gadget', 'device', 'iphone', 'android'],
+            keywords: ['tech', 'review', 'unboxing', 'phone', 'gadget', 'device', 'iphone', 'android', 'technology'],
             description: 'Tech reviews attract engaged audiences researching purchases.',
             beginnerReason: 'Review products you already own. Viewers appreciate honest opinions over fancy production. Can build to affiliate income.',
             contentIdeas: [
@@ -2282,7 +2456,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'fitness': {
-            keywords: ['workout', 'fitness', 'exercise', 'training', 'gym', 'health', 'muscle'],
+            keywords: ['workout', 'fitness', 'exercise', 'training', 'gym', 'health', 'muscle', 'fit'],
             description: 'Fitness content inspires and helps people achieve their health goals.',
             beginnerReason: 'Film workouts at home with phone. No gym needed. Viewers love following along. Personal transformation is compelling.',
             contentIdeas: [
@@ -2294,7 +2468,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'educational': {
-            keywords: ['science', 'math', 'education', 'school', 'study', 'lesson', 'teach'],
+            keywords: ['science', 'math', 'education', 'school', 'study', 'lesson', 'teach', 'learning'],
             description: 'Educational content has dedicated audiences seeking to learn new things.',
             beginnerReason: 'Share knowledge you already have. Students always need help. Can use simple whiteboard or screen recording.',
             contentIdeas: [
@@ -2306,7 +2480,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'comedy': {
-            keywords: ['funny', 'comedy', 'humor', 'laugh', 'joke', 'prank', 'meme'],
+            keywords: ['funny', 'comedy', 'humor', 'laugh', 'joke', 'prank', 'meme', 'skit'],
             description: 'Comedy content is highly shareable and can go viral quickly.',
             beginnerReason: 'Just need creativity and personality. Skits can be filmed anywhere. Comedy shorts blow up on YouTube Shorts.',
             contentIdeas: [
@@ -2318,7 +2492,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'personal finance': {
-            keywords: ['money', 'finance', 'budget', 'saving', 'invest', 'debt', 'income'],
+            keywords: ['money', 'finance', 'budget', 'saving', 'invest', 'debt', 'income', 'financial'],
             description: 'Finance content attracts viewers wanting to improve their money situation.',
             beginnerReason: 'Share your money journey. Screen record budgeting apps. High value content with loyal audiences.',
             contentIdeas: [
@@ -2330,7 +2504,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'music covers': {
-            keywords: ['cover', 'music', 'song', 'singing', 'acoustic', 'piano', 'guitar'],
+            keywords: ['cover', 'music', 'song', 'singing', 'acoustic', 'piano', 'guitar', 'performance'],
             description: 'Music covers tap into existing fanbases and showcase talent.',
             beginnerReason: 'Use instruments you already play. Built-in search traffic from song names. Phone recording quality is acceptable.',
             contentIdeas: [
@@ -2342,7 +2516,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'asmr': {
-            keywords: ['asmr', 'relaxing', 'sleep', 'whisper', 'sound', 'tingles', 'calm'],
+            keywords: ['asmr', 'relaxing', 'sleep', 'whisper', 'sound', 'tingles', 'calm', 'relax'],
             description: 'ASMR content helps people relax and has a dedicated following.',
             beginnerReason: 'Just need a decent microphone. Simple, repetitive content. Loyal niche audience. Can film in any quiet space.',
             contentIdeas: [
@@ -2354,7 +2528,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'productivity': {
-            keywords: ['productivity', 'organized', 'planner', 'notion', 'journal', 'routine', 'efficient'],
+            keywords: ['productivity', 'organized', 'planner', 'notion', 'journal', 'routine', 'efficient', 'productive'],
             description: 'Productivity content helps viewers optimize their time and life.',
             beginnerReason: 'Share your actual systems. Screen record your setup. Highly searchable. Audience eager to improve.',
             contentIdeas: [
@@ -2366,7 +2540,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'book reviews': {
-            keywords: ['book', 'reading', 'review', 'novel', 'literature', 'author', 'bookshelf'],
+            keywords: ['book', 'reading', 'review', 'novel', 'literature', 'author', 'bookshelf', 'reader'],
             description: 'Book content connects with passionate readers seeking recommendations.',
             beginnerReason: 'Talk about books you\'ve read. Simple talking head format. Engaged, loyal community. Easy to be consistent.',
             contentIdeas: [
@@ -2378,7 +2552,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'art': {
-            keywords: ['art', 'drawing', 'painting', 'sketch', 'artist', 'illustration', 'creative'],
+            keywords: ['art', 'drawing', 'painting', 'sketch', 'artist', 'illustration', 'creative', 'draw'],
             description: 'Art content showcases creative process and inspires others.',
             beginnerReason: 'Film your actual art process. Viewers love watching creation. Time-lapse videos are simple to make.',
             contentIdeas: [
@@ -2390,7 +2564,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'travel': {
-            keywords: ['travel', 'trip', 'vacation', 'destination', 'adventure', 'tourist', 'explore'],
+            keywords: ['travel', 'trip', 'vacation', 'destination', 'adventure', 'tourist', 'explore', 'journey'],
             description: 'Travel content takes viewers to new places and provides trip ideas.',
             beginnerReason: 'Film travels on your phone. Even local trips work. Viewers love living vicariously. Simple vlog style.',
             contentIdeas: [
@@ -2402,7 +2576,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'photography': {
-            keywords: ['photo', 'photography', 'camera', 'lens', 'portrait', 'shot', 'photographer'],
+            keywords: ['photo', 'photography', 'camera', 'lens', 'portrait', 'shot', 'photographer', 'photos'],
             description: 'Photography content teaches camera techniques and visual storytelling.',
             beginnerReason: 'Start with phone photography. Free editing apps like Snapseed. Visual content is engaging and shareable.',
             contentIdeas: [
@@ -2414,7 +2588,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'pets': {
-            keywords: ['dog', 'cat', 'pet', 'puppy', 'kitten', 'animal', 'cute'],
+            keywords: ['dog', 'cat', 'pet', 'puppy', 'kitten', 'animal', 'cute', 'pets'],
             description: 'Pet content is universally loved and easy to film with animals you already have.',
             beginnerReason: 'Film your own pets. Cute animal content always performs well. Simple editing needed. Huge built-in audience.',
             contentIdeas: [
@@ -2426,7 +2600,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'diy crafts': {
-            keywords: ['diy', 'craft', 'handmade', 'make', 'create', 'project', 'build'],
+            keywords: ['diy', 'craft', 'handmade', 'make', 'create', 'project', 'build', 'crafting'],
             description: 'DIY and craft content shows creative projects viewers can replicate.',
             beginnerReason: 'Use materials around the house. Phone filming is fine. Satisfying to watch. Step-by-step format is simple.',
             contentIdeas: [
@@ -2438,7 +2612,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'fashion': {
-            keywords: ['fashion', 'outfit', 'style', 'clothing', 'wear', 'dress', 'trend'],
+            keywords: ['fashion', 'outfit', 'style', 'clothing', 'wear', 'dress', 'trend', 'lookbook'],
             description: 'Fashion content showcases style and helps viewers with outfit inspiration.',
             beginnerReason: 'Film yourself in different outfits. No special equipment. Can thrift or use existing wardrobe. Relatable content.',
             contentIdeas: [
@@ -2450,7 +2624,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'beauty': {
-            keywords: ['makeup', 'beauty', 'skincare', 'cosmetic', 'routine', 'skin', 'hair'],
+            keywords: ['makeup', 'beauty', 'skincare', 'cosmetic', 'routine', 'skin', 'hair', 'cosmetics'],
             description: 'Beauty content covers makeup, skincare, and personal care routines.',
             beginnerReason: 'Use products you already own. Ring light is affordable. Highly searchable. Great for affiliate marketing later.',
             contentIdeas: [
@@ -2462,7 +2636,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'motivation': {
-            keywords: ['motivation', 'inspire', 'success', 'mindset', 'goals', 'hustle', 'growth'],
+            keywords: ['motivation', 'inspire', 'success', 'mindset', 'goals', 'hustle', 'growth', 'motivational'],
             description: 'Motivational content inspires viewers to improve their lives.',
             beginnerReason: 'Share your journey and lessons. Simple talking head format. Viewers love authentic stories. Easy to script.',
             contentIdeas: [
@@ -2474,7 +2648,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'minimalism': {
-            keywords: ['minimalism', 'declutter', 'organize', 'simple', 'minimal', 'less', 'organize'],
+            keywords: ['minimalism', 'declutter', 'organize', 'simple', 'minimal', 'less', 'minimalist'],
             description: 'Minimalism content helps people simplify and organize their lives.',
             beginnerReason: 'Film your own decluttering process. Before/after is satisfying. Growing trend. Simple filming setup.',
             contentIdeas: [
@@ -2486,7 +2660,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'language learning': {
-            keywords: ['language', 'learn', 'spanish', 'french', 'english', 'speaking', 'fluent'],
+            keywords: ['language', 'learn', 'spanish', 'french', 'english', 'speaking', 'fluent', 'learning'],
             description: 'Language learning content teaches new languages or study methods.',
             beginnerReason: 'Teach a language you know. Whiteboard or screen record. Students always searching for free lessons.',
             contentIdeas: [
@@ -2498,7 +2672,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'plant care': {
-            keywords: ['plant', 'garden', 'houseplant', 'grow', 'succulent', 'green', 'propagate'],
+            keywords: ['plant', 'garden', 'houseplant', 'grow', 'succulent', 'green', 'propagate', 'plants'],
             description: 'Plant care content guides viewers in growing and maintaining plants.',
             beginnerReason: 'Film your own plants. Peaceful, satisfying content. Growing niche. Time-lapses are easy with phone.',
             contentIdeas: [
@@ -2510,7 +2684,7 @@ function getSuccessInterpretation(niche) {
             ]
         },
         'meditation': {
-            keywords: ['meditation', 'mindfulness', 'calm', 'peaceful', 'relax', 'breathe', 'zen'],
+            keywords: ['meditation', 'mindfulness', 'calm', 'peaceful', 'relax', 'breathe', 'zen', 'meditate'],
             description: 'Meditation content helps viewers find calm and practice mindfulness.',
             beginnerReason: 'Record calming voiceovers. Use free nature footage. Growing wellness trend. Simple production.',
             contentIdeas: [
@@ -2525,6 +2699,7 @@ function getSuccessInterpretation(niche) {
 
     const niches = [];
 
+    // Analyze each niche category using ALL trending data
     for (const [category, data] of Object.entries(beginnerNicheCategories)) {
         let totalViews = 0;
         let totalLikes = 0;
@@ -2534,30 +2709,19 @@ function getSuccessInterpretation(niche) {
         const seenVideoIds = new Set();
         const uniqueChannels = new Set();
 
-        // Check niche-specific search data
-        const nicheKey = category.toLowerCase();
-        if (nicheSearchData[category] || nicheSearchData[nicheKey]) {
-            const nicheVideos = nicheSearchData[category] || nicheSearchData[nicheKey];
-            nicheVideos.forEach(video => {
-                if (!seenVideoIds.has(video.videoId)) {
-                    seenVideoIds.add(video.videoId);
-                    uniqueChannels.add(video.channelId || video.channel);
-                    totalViews += video.views;
-                    totalLikes += video.likes || 0;
-                    totalComments += video.comments || 0;
-                    videoCount++;
-                    frequency++;
-                }
-            });
-        }
-
-        // Search in trending data
+        // Scan through ALL logged trending data
         allLogs.forEach(log => {
             log.trends.forEach(trend => {
                 const titleLower = trend.title.toLowerCase();
-                const matchingKeywords = data.keywords.filter(kw => titleLower.includes(kw));
                 
-                if (matchingKeywords.length >= 2 || matchingKeywords.some(kw => kw.length >= 8)) {
+                // Count matching keywords (need at least 1 for a match)
+                const matchingKeywords = data.keywords.filter(kw => titleLower.includes(kw.toLowerCase()));
+                
+                // Match if at least 1 keyword found
+                if (matchingKeywords.length >= 1) {
+                    frequency++; // Count how often this niche appears
+                    
+                    // Only count unique videos for statistics
                     if (!seenVideoIds.has(trend.videoId)) {
                         seenVideoIds.add(trend.videoId);
                         uniqueChannels.add(trend.channel);
@@ -2565,24 +2729,31 @@ function getSuccessInterpretation(niche) {
                         totalLikes += trend.likes || 0;
                         videoCount++;
                     }
-                    frequency++;
                 }
             });
         });
 
+        // Skip niches with insufficient data (need at least 30 unique videos)
+        if (videoCount < 30) {
+            console.log(`⚠️ Skipping ${category}: only ${videoCount} videos (need 30+)`);
+            continue;
+        }
+
+        // Calculate averages
         const avgViews = videoCount > 0 ? Math.floor(totalViews / videoCount) : 0;
         const avgLikes = videoCount > 0 ? Math.floor(totalLikes / videoCount) : 0;
-        const avgComments = videoCount > 0 ? Math.floor(totalComments / videoCount) : 0;
+        const avgComments = 0; // We don't track comments in trending API
         const engagementRate = avgViews > 0 ? avgLikes / avgViews : 0;
         const channelDiversity = videoCount > 0 ? uniqueChannels.size / videoCount : 0;
         
+        // Determine competition level
         let competitionLevel = 0;
         if (avgViews > 5000000) competitionLevel += 3;
         else if (avgViews > 2000000) competitionLevel += 2;
         else competitionLevel += 1;
         
-        if (frequency > 15) competitionLevel += 3;
-        else if (frequency > 8) competitionLevel += 2;
+        if (frequency > 50) competitionLevel += 3;
+        else if (frequency > 25) competitionLevel += 2;
         else competitionLevel += 1;
         
         const competition = competitionLevel >= 7 ? 'Very High' : 
@@ -2590,15 +2761,19 @@ function getSuccessInterpretation(niche) {
                           competitionLevel >= 3 ? 'Medium' : 
                           competitionLevel >= 2 ? 'Low' : 'Very Low';
         
-        const recentFreq = allLogs.slice(-3).reduce((sum, log) => {
+        // Calculate growth trend
+        const recentSnapshots = Math.min(10, Math.floor(allLogs.length * 0.2)); // Recent 20% of data
+        const oldSnapshots = Math.min(10, Math.floor(allLogs.length * 0.2)); // Old 20% of data
+        
+        const recentFreq = allLogs.slice(-recentSnapshots).reduce((sum, log) => {
             return sum + log.trends.filter(t => 
-                data.keywords.some(kw => t.title.toLowerCase().includes(kw))
+                data.keywords.some(kw => t.title.toLowerCase().includes(kw.toLowerCase()))
             ).length;
         }, 0);
         
-        const oldFreq = allLogs.slice(0, Math.min(3, allLogs.length)).reduce((sum, log) => {
+        const oldFreq = allLogs.slice(0, oldSnapshots).reduce((sum, log) => {
             return sum + log.trends.filter(t => 
-                data.keywords.some(kw => t.title.toLowerCase().includes(kw))
+                data.keywords.some(kw => t.title.toLowerCase().includes(kw.toLowerCase()))
             ).length;
         }, 0);
         
@@ -2617,6 +2792,7 @@ function getSuccessInterpretation(niche) {
             growthTrend = '🚀 Exploding';
         }
 
+        // Calculate success chance for beginners (0-100%)
         let successChance = 50;
         if (competition === 'Very Low') successChance += 25;
         else if (competition === 'Low') successChance += 20;
@@ -2631,11 +2807,11 @@ function getSuccessInterpretation(niche) {
         if (avgViews >= 500000 && avgViews <= 3000000) successChance += 10;
         else if (avgViews < 500000) successChance -= 5;
         
-        if (videoCount >= 20) successChance += 5;
-        else if (videoCount < 5) successChance -= 10;
+        if (videoCount >= 50) successChance += 5;
         
         successChance = Math.max(0, Math.min(100, successChance));
 
+        // Calculate beginner score (0-100)
         let beginnerScore = 0;
         if (competition === 'Very Low') beginnerScore += 40;
         else if (competition === 'Low') beginnerScore += 35;
@@ -2650,31 +2826,31 @@ function getSuccessInterpretation(niche) {
         else beginnerScore += 10;
         
         if (engagementRate > 0.05) beginnerScore += 5;
-        if (videoCount >= 10) beginnerScore += 5;
+        if (videoCount >= 50) beginnerScore += 5;
         if (channelDiversity > 0.5) beginnerScore += 10;
         if (growthRate > 0) beginnerScore += 10;
         
-        if (videoCount === 0) beginnerScore = 5;
-        else if (videoCount < 3) beginnerScore = Math.round(beginnerScore * 0.6);
-        else if (videoCount >= 15) beginnerScore = Math.min(Math.round(beginnerScore * 1.1), 100);
+        if (videoCount >= 50) beginnerScore = Math.min(Math.round(beginnerScore * 1.1), 100);
         
         beginnerScore = Math.round(beginnerScore);
 
-        const monthlyViewsPotential = Math.round(avgViews * 8);
+        // Calculate monthly potential
+        const monthlyViewsPotential = Math.round(avgViews * 8); // 8 videos per month
         const estimatedMonthlyEarnings = {
             low: Math.round((monthlyViewsPotential / 1000) * 2),
             mid: Math.round((monthlyViewsPotential / 1000) * 5),
             high: Math.round((monthlyViewsPotential / 1000) * 8)
         };
 
-        const isBeginnerFriendly = beginnerScore >= 65 && videoCount >= 5;
+        const isBeginnerFriendly = beginnerScore >= 65 && videoCount >= 30;
 
+        // Extract trending keywords from titles
         const trendingKeywords = [];
         allLogs.forEach(log => {
             log.trends.forEach(trend => {
                 const titleLower = trend.title.toLowerCase();
                 data.keywords.forEach(kw => {
-                    if (titleLower.includes(kw) && !trendingKeywords.includes(kw)) {
+                    if (titleLower.includes(kw.toLowerCase()) && !trendingKeywords.includes(kw)) {
                         trendingKeywords.push(kw);
                     }
                 });
@@ -2705,19 +2881,12 @@ function getSuccessInterpretation(niche) {
             tips: getBeginnerTips(category, competition, growthTrend),
             workingStrategies: getWorkingStrategies(category.toLowerCase(), allLogs, data.keywords)
         });
+        
+        console.log(`✅ ${category}: ${videoCount} unique videos, ${frequency} total appearances`);
     }
 
+    // Sort by beginner score, then success chance
     return niches.sort((a, b) => {
-        // Optimal sample size: 30+ videos for statistical reliability
-        // 50+ videos = excellent data, 30-49 = good data, 15-29 = acceptable, <15 = insufficient
-        const aHasData = a.videoCount >= 30;
-        const bHasData = b.videoCount >= 30;
-        
-        // Prioritize niches with sufficient data (30+ videos)
-        if (aHasData && !bHasData) return -1;
-        if (!aHasData && bHasData) return 1;
-        
-        // Both have sufficient data - sort by beginnerScore first, then successChance
         if (b.beginnerScore !== a.beginnerScore) {
             return b.beginnerScore - a.beginnerScore;
         }
